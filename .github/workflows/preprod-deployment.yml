@@ -16,11 +16,10 @@ jobs:
         uses: actions/checkout@master
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1.5.8
+        uses: aws-actions/configure-aws-credentials@v1.6.1
         with:
           aws-region: eu-west-1
-          role-to-assume: ${{ secrets.PREPROD_AWS_ROLE_ARN }}
-          role-external-id: ${{ secrets.PREPROD_AWS_EXTERNAL_ID }}
+          role-to-assume: ${{ secrets.PREPROD_AWS_ROLE_TO_ASSUME }}
           role-duration-seconds: 900
 
       - uses: chrnorm/deployment-action@releases/v1
