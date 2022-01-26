@@ -10,6 +10,9 @@ jobs:
     env:
       BASE_NAME: spacelift-vcs-agent
       BIN_DIR: build
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
       - name: Check out repository code
