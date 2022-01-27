@@ -29,6 +29,8 @@ const (
 	vendorGitlab              = "gitlab"
 )
 
+var VERSION = "development"
+
 var (
 	availableVendors = []string{
 		vendorBitbucketDatacenter,
@@ -187,6 +189,7 @@ var app = &cli.App{
 	},
 	Copyright: "Spacelift, Inc.",
 	Usage:     "The VCS Agent is used to proxy requests to your VCS provider if Spacelift cannot access it directly.",
+	Version:   VERSION,
 }
 
 func main() {
