@@ -29,6 +29,7 @@ const (
 	vendorGitlab              = "gitlab"
 )
 
+// VERSION is the version printed by the resulting binary.
 var VERSION = "development"
 
 var (
