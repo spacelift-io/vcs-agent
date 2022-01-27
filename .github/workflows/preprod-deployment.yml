@@ -1,6 +1,9 @@
 name: Preprod deployment
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
 
 jobs:
   preprod-agent-deployment:
@@ -28,7 +31,6 @@ jobs:
 
       - uses: chrnorm/deployment-action@releases/v1
         name: Create GitHub deployment
-        if: github.ref == 'refs/heads/main'
         id: deployment
         with:
           token: "${{ github.token }}"
@@ -75,23 +77,13 @@ jobs:
         env:
           SHORT_SHA: ${{ steps.vars.outputs.sha }}
 
-      - name: Upload the VCS Agent binary to downloads.spacelift.dev (dry run)
-        if: github.ref != 'refs/heads/main'
-        run: >-
-          aws s3 sync
-          ${BIN_DIR} s3://${{ secrets.PREPROD_AWS_S3_BUCKET }}/
-          --dryrun
-          --no-progress
-
       - name: Upload the VCS Agent binary to downloads.spacelift.dev
-        if: github.ref == 'refs/heads/main'
         run: >-
           aws s3 sync
           ${BIN_DIR} s3://${{ secrets.PREPROD_AWS_S3_BUCKET }}/
           --no-progress
 
       - name: Invalidate downloads.spacelift.dev cache
-        if: github.ref == 'refs/heads/main'
         run: >-
           aws cloudfront create-invalidation
           --distribution-id ${{ secrets.PREPROD_DISTRIBUTION }}
@@ -99,7 +91,7 @@ jobs:
 
       - name: Update deployment status (success)
         uses: chrnorm/deployment-status@releases/v1
-        if: success() && github.ref == 'refs/heads/main'
+        if: success()
         with:
           token: "${{ github.token }}"
           target_url: https://downloads.spacelift.dev/spacelift-vcs-agent
@@ -108,7 +100,7 @@ jobs:
 
       - name: Update deployment status (failure)
         uses: chrnorm/deployment-status@releases/v1
-        if: failure() && github.ref == 'refs/heads/main'
+        if: failure()
         with:
           token: "${{ github.token }}"
           target_url: https://downloads.spacelift.dev/spacelift-vcs-agent
