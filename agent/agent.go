@@ -52,7 +52,7 @@ func (a *Agent) Run(ctx *spcontext.Context) (outErr error) {
 	if insecure {
 		opts = append(opts, grpc.WithInsecure())
 	} else {
-		opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{})))
+		opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{MinVersion: tls.VersionTLS12})))
 	}
 
 	conn, err := grpc.Dial(a.poolConfig.Host, opts...)

@@ -43,8 +43,9 @@ jobs:
           echo ::set-output name=sha::$(git rev-parse --short=8 ${{ github.sha }})
 
       - name: Build Spacelift VCS Agent
-        run: go build -a -tags netgo -ldflags '-s -w -extldflags "-static"' -trimpath -o $BIN_DIR/$BASE_NAME ./cmd/spacelift-vcs-agent
+        run: go build -a -tags netgo -ldflags '-s -w -extldflags "-static" -X main.VERSION=$SHORT_SHA -X main.BugsnagAPIKey=$BUGSNAG_API_KEY' -trimpath -o $BIN_DIR/$BASE_NAME ./cmd/spacelift-vcs-agent
         env:
+          BUGSNAG_API_KEY: {{ secrets.PREPROD_BUGSNAG_API_KEY }}
           CGO_ENABLED: 0
           SHORT_SHA: ${{ steps.vars.outputs.sha }}
 
