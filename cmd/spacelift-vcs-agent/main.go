@@ -32,6 +32,9 @@ const (
 // VERSION is the version printed by the resulting binary.
 var VERSION = "development"
 
+// BugsnagAPIKey is used to send error information to Bugsnag.
+var BugsnagAPIKey string
+
 var (
 	availableVendors = []string{
 		vendorBitbucketDatacenter,
@@ -104,7 +107,7 @@ var app = &cli.App{
 		var opts []spcontext.ContextOption
 		ctx := spcontext.New(log.NewJSONLogger(os.Stdout), opts...)
 
-		apiKey := "1b0ac0ea378c85618ebb2fa112fd11e0"
+		apiKey := BugsnagAPIKey
 		if apiKeyOverride := cmdCtx.String(flagBugsnagAPIKey.Name); len(apiKeyOverride) > 0 {
 			apiKey = apiKeyOverride
 		}
@@ -175,7 +178,7 @@ var app = &cli.App{
 
 					if err := a.Run(ctx); err != nil {
 						if !strings.Contains(err.Error(), "context canceled") {
-							ctx.RawError(err, "error running agent")
+							_ = ctx.RawError(err, "error running agent")
 						}
 					}
 				}()
