@@ -67,15 +67,19 @@ var gitlabPatterns = map[string]gitlabPattern{
 		Method: http.MethodPut,
 		Path:   regexp.MustCompile("^/api/v4/projects/(?P<project>[^/]+)/deployments/[0-9]+$"),
 	},
-	"List PRs": {
+	"Get a single Merge Request": {
+		Method: http.MethodGet,
+		Path:   regexp.MustCompile("^/api/v4/projects/(?P<project>[^/]+)/merge_requests/[0-9]+$"),
+	},
+	"List Merge Requests": {
 		Method: http.MethodGet,
 		Path:   regexp.MustCompile("^/api/v4/projects/(?P<project>[^/]+)/merge_requests$"),
 	},
-	"List PRs by Commit": {
+	"List Merge Requests by Commit": {
 		Method: http.MethodGet,
 		Path:   regexp.MustCompile("^/api/v4/projects/(?P<project>[^/]+)/repository/commits/[^/]+/merge_requests$"),
 	},
-	"Make PR Comment": {
+	"Make Merge Request Note": {
 		Method: http.MethodPost,
 		Path:   regexp.MustCompile("^/api/v4/projects/(?P<project>[^/]+)/merge_requests/[0-9]+/notes$"),
 	},
