@@ -183,6 +183,10 @@ func (a *Agent) handleRequest(ctx *spcontext.Context, id string, msg *privatevcs
 
 	ctx = ctx.With("project", project)
 
+	timeoutCtx, cancel := spcontext.WithTimeout(ctx, time.Second*25)
+	defer cancel()
+	req = req.WithContext(timeoutCtx)
+
 	start := time.Now()
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
