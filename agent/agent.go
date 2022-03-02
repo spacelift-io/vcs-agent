@@ -134,7 +134,7 @@ func (a *Agent) handleRequest(ctx *spcontext.Context, id string, msg *privatevcs
 		req.Header.Set(key, value)
 	}
 
-	name, project, err := validation.MatchRequest(a.vendor, req)
+	name, project, subdomain, err := validation.MatchRequest(a.vendor, req)
 	if err != nil {
 		ctx := ctx.With(
 			"match_error", err,
@@ -146,6 +146,11 @@ func (a *Agent) handleRequest(ctx *spcontext.Context, id string, msg *privatevcs
 				Error: err.Error(),
 			},
 		}
+	}
+
+	if subdomain != nil {
+		req.URL.Host = *subdomain + "." + req.URL.Host
+		req.Host = req.URL.Host
 	}
 
 	ctx = ctx.With("name", name)

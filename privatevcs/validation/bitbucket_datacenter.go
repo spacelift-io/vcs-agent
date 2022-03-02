@@ -62,7 +62,7 @@ var bitbucketDatacenterPatterns = map[string]bitbucketDatacenterPattern{
 	},
 }
 
-func matchBitbucketDatacenterRequest(r *http.Request) (string, string, error) {
+func matchBitbucketDatacenterRequest(r *http.Request) (string, string, *string, error) {
 	for name, pattern := range bitbucketDatacenterPatterns {
 		if matches := pattern.Path.FindStringSubmatch(r.URL.EscapedPath()); matches != nil {
 			var project string
@@ -77,8 +77,8 @@ func matchBitbucketDatacenterRequest(r *http.Request) (string, string, error) {
 			if repository != "" {
 				outProject = fmt.Sprintf("%s/%s", project, repository)
 			}
-			return name, outProject, nil
+			return name, outProject, nil, nil
 		}
 	}
-	return "", "", ErrNoMatch
+	return "", "", nil, ErrNoMatch
 }
