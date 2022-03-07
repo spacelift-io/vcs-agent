@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+
+	"github.com/spacelift-io/vcs-agent/nullable"
 )
 
 type githubEnterprisePattern struct {
@@ -63,13 +65,17 @@ var githubEnterprisePatterns = map[string]githubEnterprisePattern{
 		Path:   regexp.MustCompile("^/(api/v3/)?app/installations/[^/]+/access_tokens$"),
 	},
 	"List Installations": {
-		Method: http.MethodPost,
+		Method: http.MethodGet,
 		Path:   regexp.MustCompile("^/(api/v3/)?app/installations$"),
 	},
 }
 
 func matchGitHubEnterpriseRequest(r *http.Request) (string, string, *string, error) {
 	for name, pattern := range githubEnterprisePatterns {
+		if r.Method != pattern.Method {
+			continue
+		}
+
 		if matches := pattern.Path.FindStringSubmatch(r.URL.EscapedPath()); matches != nil {
 			var project string
 			if index := pattern.Path.SubexpIndex("project"); index != -1 {
@@ -94,8 +100,7 @@ func IsGitHubTarballRequest(r *http.Request) (ok bool, subdomain *string) {
 	if tarballRegex.MatchString(r.URL.EscapedPath()) {
 		if !strings.HasPrefix(r.URL.EscapedPath(), "/_codeload") &&
 			!strings.HasPrefix(r.URL.EscapedPath(), "/codeload") {
-			h := "codeload"
-			subdomain = &h
+			subdomain = nullable.String("codeload")
 		}
 
 		return true, subdomain
