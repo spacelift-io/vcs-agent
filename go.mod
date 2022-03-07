@@ -13,6 +13,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/spacelift-io/spcontext v0.0.0-20211125123836-a42f9fe4ad2c
 	github.com/stretchr/objx v0.3.0 // indirect
+	github.com/stretchr/testify v1.7.0
 	github.com/urfave/cli v1.22.5
 	golang.org/x/net v0.0.0-20211015174653-db2dff38ab41 // indirect
 	golang.org/x/sys v0.0.0-20211013075003-97ac67df715c // indirect
