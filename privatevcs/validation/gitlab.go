@@ -85,15 +85,15 @@ var gitlabPatterns = map[string]gitlabPattern{
 	},
 }
 
-func matchGitLabRequest(r *http.Request) (string, string, error) {
+func matchGitLabRequest(r *http.Request) (string, string, *string, error) {
 	for name, pattern := range gitlabPatterns {
 		if matches := pattern.Path.FindStringSubmatch(r.URL.EscapedPath()); matches != nil {
 			var project string
 			if index := pattern.Path.SubexpIndex("project"); index != -1 {
 				project = matches[index]
 			}
-			return name, project, nil
+			return name, project, nil, nil
 		}
 	}
-	return "", "", ErrNoMatch
+	return "", "", nil, ErrNoMatch
 }
