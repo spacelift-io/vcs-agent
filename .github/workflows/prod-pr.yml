@@ -1,0 +1,28 @@
+name: prod-pr
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set PR template
+        id: template
+        uses: juliangruber/read-file-action@v1
+        with:
+          path: .github/prod_deployment_template.md
+          trim: false
+
+      - name: Create Pull Request
+        uses: vsoch/pull-request-action@1.0.13
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PASS_IF_EXISTS: true
+          PULL_REQUEST_BODY: ${{ steps.template.outputs.content }}
+          PULL_REQUEST_BRANCH: production
+          PULL_REQUEST_DRAFT: true
+          PULL_REQUEST_TITLE: Production deployment 🎁
