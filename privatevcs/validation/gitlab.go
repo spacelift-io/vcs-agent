@@ -11,6 +11,10 @@ type gitlabPattern struct {
 }
 
 var gitlabPatterns = map[string]gitlabPattern{
+	"Get Current User": {
+		Method: http.MethodGet,
+		Path:   regexp.MustCompile("^/api/v4/user$"),
+	},
 	"List Projects": {
 		Method: http.MethodGet,
 		Path:   regexp.MustCompile("^/api/v4/projects$"),
