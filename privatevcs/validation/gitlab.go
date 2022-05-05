@@ -91,6 +91,10 @@ var gitlabPatterns = map[string]gitlabPattern{
 
 func matchGitLabRequest(r *http.Request) (string, string, *string, error) {
 	for name, pattern := range gitlabPatterns {
+		if r.Method != pattern.Method {
+			continue
+		}
+
 		if matches := pattern.Path.FindStringSubmatch(r.URL.EscapedPath()); matches != nil {
 			var project string
 			if index := pattern.Path.SubexpIndex("project"); index != -1 {
