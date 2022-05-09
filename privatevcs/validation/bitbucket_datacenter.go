@@ -64,6 +64,10 @@ var bitbucketDatacenterPatterns = map[string]bitbucketDatacenterPattern{
 
 func matchBitbucketDatacenterRequest(r *http.Request) (string, string, *string, error) {
 	for name, pattern := range bitbucketDatacenterPatterns {
+		if r.Method != pattern.Method {
+			continue
+		}
+
 		if matches := pattern.Path.FindStringSubmatch(r.URL.EscapedPath()); matches != nil {
 			var project string
 			if index := pattern.Path.SubexpIndex("projectKey"); index != -1 {
