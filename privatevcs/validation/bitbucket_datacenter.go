@@ -56,6 +56,10 @@ var bitbucketDatacenterPatterns = map[string]bitbucketDatacenterPattern{
 		Method: http.MethodGet,
 		Path:   regexp.MustCompile(`^/rest/api/1.0/projects/(?P<projectKey>[^/]+)/repos/(?P<repositorySlug>[^/]+)/commits/(?P<commitSHA>[^/]+)/pull-requests$`),
 	},
+	"Get a single Pull Request": {
+		Method: http.MethodGet,
+		Path:   regexp.MustCompile(`^/rest/api/1.0/projects/(?P<projectKey>[^/]+)/repos/(?P<repositorySlug>[^/]+)/pull-requests/[0-9]+$`),
+	},
 	"Make PR Comment": {
 		Method: http.MethodPost,
 		Path:   regexp.MustCompile("^/rest/api/1.0/projects/(?P<projectKey>[^/]+)/repos/(?P<repositorySlug>[^/]+)/pull-requests/[0-9]+/comments$"),

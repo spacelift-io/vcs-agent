@@ -68,6 +68,10 @@ var githubEnterprisePatterns = map[string]githubEnterprisePattern{
 		Method: http.MethodGet,
 		Path:   regexp.MustCompile("^/(api/v3/)?app/installations$"),
 	},
+	"Get app details": {
+		Method: http.MethodGet,
+		Path:   regexp.MustCompile("^/(api/v3/)?app$"),
+	},
 }
 
 func matchGitHubEnterpriseRequest(r *http.Request) (string, string, *string, error) {

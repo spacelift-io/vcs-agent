@@ -194,6 +194,18 @@ func TestMatchingValidation(t *testing.T) {
 			name:    "List Installations",
 			method:  http.MethodGet,
 		},
+		{
+			path:    "/api/v3/app",
+			matches: true,
+			name:    "Get app details",
+			method:  http.MethodGet,
+		},
+		{
+			path:    "/app",
+			matches: true,
+			name:    "Get app details",
+			method:  http.MethodGet,
+		},
 	}
 
 	for i := range testCases {

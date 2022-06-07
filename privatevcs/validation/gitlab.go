@@ -87,6 +87,14 @@ var gitlabPatterns = map[string]gitlabPattern{
 		Method: http.MethodPost,
 		Path:   regexp.MustCompile("^/api/v4/projects/(?P<project>[^/]+)/merge_requests/[0-9]+/notes$"),
 	},
+	"Git Clone - info/refs": {
+		Method: http.MethodGet,
+		Path:   regexp.MustCompile(`^/(?P<project>[^/]+\/[^/]+)\.git/info/refs$`),
+	},
+	"Git Clone - git-upload-pack": {
+		Method: http.MethodPost,
+		Path:   regexp.MustCompile(`^/(?P<project>[^/]+\/[^/]+)\.git/git-upload-pack$`),
+	},
 }
 
 func matchGitLabRequest(r *http.Request) (string, string, *string, error) {
