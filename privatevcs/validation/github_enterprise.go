@@ -60,6 +60,10 @@ var githubEnterprisePatterns = map[string]githubEnterprisePattern{
 		Method: http.MethodGet,
 		Path:   regexp.MustCompile("^/(api/v3/)?repos/(?P<project>[^/]+/[^/]+)/pulls/[^/]+/files$"),
 	},
+	"Get Pull Request": {
+		Method: http.MethodGet,
+		Path:   regexp.MustCompile("^/(api/v3/)?repos/(?P<project>[^/]+/[^/]+)/pulls/[^/]+$"),
+	},
 	"Refresh Access Token": {
 		Method: http.MethodPost,
 		Path:   regexp.MustCompile("^/(api/v3/)?app/installations/[^/]+/access_tokens$"),
@@ -67,6 +71,10 @@ var githubEnterprisePatterns = map[string]githubEnterprisePattern{
 	"List Installations": {
 		Method: http.MethodGet,
 		Path:   regexp.MustCompile("^/(api/v3/)?app/installations$"),
+	},
+	"Get app details": {
+		Method: http.MethodGet,
+		Path:   regexp.MustCompile("^/(api/v3/)?app$"),
 	},
 }
 

@@ -171,6 +171,20 @@ func TestMatchingValidation(t *testing.T) {
 			method:  http.MethodGet,
 		},
 		{
+			path:    "/api/v3/repos/octocats/infra/pulls/123",
+			matches: true,
+			name:    "Get Pull Request",
+			project: nullable.String("octocats/infra"),
+			method:  http.MethodGet,
+		},
+		{
+			path:    "/repos/octocats/infra/pulls/123",
+			matches: true,
+			name:    "Get Pull Request",
+			project: nullable.String("octocats/infra"),
+			method:  http.MethodGet,
+		},
+		{
 			path:    "/api/v3/app/installations/29/access_tokens",
 			matches: true,
 			name:    "Refresh Access Token",
@@ -192,6 +206,18 @@ func TestMatchingValidation(t *testing.T) {
 			path:    "/app/installations",
 			matches: true,
 			name:    "List Installations",
+			method:  http.MethodGet,
+		},
+		{
+			path:    "/api/v3/app",
+			matches: true,
+			name:    "Get app details",
+			method:  http.MethodGet,
+		},
+		{
+			path:    "/app",
+			matches: true,
+			name:    "Get app details",
 			method:  http.MethodGet,
 		},
 	}
