@@ -9,7 +9,7 @@ import (
 	"github.com/spacelift-io/vcs-agent/nullable"
 )
 
-func TestMatchingValidation(t *testing.T) {
+func TestGitHubEnterpriseValidation(t *testing.T) {
 	testCases := []struct {
 		path               string
 		matches            bool
