@@ -24,6 +24,7 @@ import (
 )
 
 const (
+	vendorAzureDevOps         = "azure_devops"
 	vendorBitbucketDatacenter = "bitbucket_datacenter"
 	vendorGitHubEnterprise    = "github_enterprise"
 	vendorGitlab              = "gitlab"
@@ -37,6 +38,7 @@ var BugsnagAPIKey string
 
 var (
 	availableVendors = []string{
+		vendorAzureDevOps,
 		vendorBitbucketDatacenter,
 		vendorGitHubEnterprise,
 		vendorGitlab,

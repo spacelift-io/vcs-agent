@@ -9,6 +9,7 @@ import (
 var ErrNoMatch = fmt.Errorf("no match for request")
 
 var vendorMatchers = map[string]func(r *http.Request) (name string, project string, subdomain *string, err error){
+	"azure_devops":         matchAzureDevOpsRequest,
 	"bitbucket_datacenter": matchBitbucketDatacenterRequest,
 	"github_enterprise":    matchGitHubEnterpriseRequest,
 	"gitlab":               matchGitLabRequest,
