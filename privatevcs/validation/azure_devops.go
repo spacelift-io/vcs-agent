@@ -92,5 +92,8 @@ func matchAzureDevOpsRequest(r *http.Request) (string, string, *string, error) {
 			return name, projectName, nil, nil
 		}
 	}
-	return "", "", nil, ErrNoMatch
+
+	// Temporarily just allow any resources - we'll restrict later once we're certain we have
+	// a stable set of endpoints in the validation rules
+	return "Unknown Request", "", nil, nil
 }

@@ -103,11 +103,20 @@ func TestAzureDevOpsValidation(t *testing.T) {
 			name:    "List Resource Areas",
 			method:  http.MethodGet,
 		},
+		// Temporarily allow any request until we're sure we have the correct set of validation
+		// rules. Once we do, the following test case can be removed, and the failing test
+		// case can be uncommented.
 		{
-			path:    "/spacelift-development/backend/_apis/git/repositories/infra/pullRequests/1234/attachments/%2Fattachment.tar.gz?api-version=7.1-preview.1",
-			matches: false,
+			path:    "/spacelift-development/_apis/UnknownResource",
+			matches: true,
+			name:    "Unknown Request",
 			method:  http.MethodGet,
 		},
+		// {
+		// 	path:    "/spacelift-development/backend/_apis/git/repositories/infra/pullRequests/1234/attachments/%2Fattachment.tar.gz?api-version=7.1-preview.1",
+		// 	matches: false,
+		// 	method:  http.MethodGet,
+		// },
 	}
 
 	for i := range testCases {
