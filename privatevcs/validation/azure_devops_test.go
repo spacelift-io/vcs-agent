@@ -10,12 +10,14 @@ import (
 )
 
 func TestAzureDevOpsValidation(t *testing.T) {
-	testCases := []struct {
+	type azureDevOpsTestCase struct {
 		path         string
 		matches      bool
 		name, method string
 		project      *string
-	}{
+	}
+
+	testCases := []azureDevOpsTestCase{
 		{
 			path:    "/spacelift-development/backend/_apis/git/repositories/infra/diffs/commits?api-version=7.1-preview.1",
 			matches: true,
@@ -75,13 +77,13 @@ func TestAzureDevOpsValidation(t *testing.T) {
 		{
 			path:    "/spacelift-development/backend/_apis/git/repositories?api-version=7.1-preview.1",
 			matches: true,
-			name:    "List Project Repositories",
+			name:    "List Repositories",
 			method:  http.MethodGet,
 		},
 		{
 			path:    "/spacelift-development/_apis/git/repositories?api-version=7.1-preview.1",
 			matches: true,
-			name:    "List Organization Repositories",
+			name:    "List Repositories",
 			method:  http.MethodGet,
 		},
 		{
@@ -119,22 +121,32 @@ func TestAzureDevOpsValidation(t *testing.T) {
 		// },
 	}
 
-	for i := range testCases {
-		testCase := testCases[i]
+	executeTestCase := func(testCase azureDevOpsTestCase) {
 		request, err := http.NewRequest(testCase.method, "https://github.myorg.com"+testCase.path, nil)
 		require.NoError(t, err, "could not create request")
 
 		name, project, _, err := matchAzureDevOpsRequest(request)
 
 		if testCase.matches {
-			require.NoError(t, err, "could not find match for %q", testCase.name)
-			require.Equal(t, testCase.name, name)
+			require.NoError(t, err, "could not find match for %q (%s)", testCase.name, testCase.path)
+			require.Equal(t, testCase.name, name, "request name not correct for %q (%s)", testCase.name, testCase.path)
 
 			if testCase.project != nil {
-				require.Equal(t, *testCase.project, project, "project did not match for %q", testCase.name)
+				require.Equal(t, *testCase.project, project, "project did not match for %q (%s)", testCase.name, testCase.path)
 			}
 		} else {
 			require.ErrorIs(t, ErrNoMatch, err)
+		}
+	}
+
+	for _, testCase := range testCases {
+		executeTestCase(testCase)
+
+		// If the test case has a name (i.e. we're expecting a match), check it also works when
+		// the Azure DevOps instance is hosted as a sub-path rather than at the root of the domain.
+		if testCase.name != "" {
+			testCase.path = "/tfs" + testCase.path
+			executeTestCase(testCase)
 		}
 	}
 }

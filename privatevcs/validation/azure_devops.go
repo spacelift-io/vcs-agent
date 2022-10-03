@@ -14,55 +14,51 @@ type azureDevOpsPattern struct {
 var azureDevOpsPatterns = map[string]azureDevOpsPattern{
 	"Get Commit Diff": {
 		Method: http.MethodGet,
-		Path:   regexp.MustCompile("^/(?P<organization>[^/]+)/(?P<project>[^/]+)/_apis/git/repositories/(?P<repositoryId>[^/]+)/diffs/commits$"),
+		Path:   regexp.MustCompile("/(?P<organization>[^/]+)/(?P<project>[^/]+)/_apis/git/repositories/(?P<repositoryId>[^/]+)/diffs/commits$"),
 	},
 	"Create Pull Request Thread": {
 		Method: http.MethodPost,
-		Path:   regexp.MustCompile("^/(?P<organization>[^/]+)/(?P<project>[^/]+)/_apis/git/repositories/(?P<repositoryId>[^/]+)/pullRequests/[^/]+/threads$"),
+		Path:   regexp.MustCompile("/(?P<organization>[^/]+)/(?P<project>[^/]+)/_apis/git/repositories/(?P<repositoryId>[^/]+)/pullRequests/[^/]+/threads$"),
 	},
 	"List Branch Stats": {
 		Method: http.MethodGet,
-		Path:   regexp.MustCompile("^/(?P<organization>[^/]+)/(?P<project>[^/]+)/_apis/git/repositories/(?P<repositoryId>[^/]+)/stats/branches$"),
+		Path:   regexp.MustCompile("/(?P<organization>[^/]+)/(?P<project>[^/]+)/_apis/git/repositories/(?P<repositoryId>[^/]+)/stats/branches$"),
 	},
 	"Get Item": {
 		Method: http.MethodGet,
-		Path:   regexp.MustCompile("^/(?P<organization>[^/]+)/(?P<project>[^/]+)/_apis/git/repositories/(?P<repositoryId>[^/]+)/items$"),
+		Path:   regexp.MustCompile("/(?P<organization>[^/]+)/(?P<project>[^/]+)/_apis/git/repositories/(?P<repositoryId>[^/]+)/items$"),
 	},
 	"Create Commit Status": {
 		Method: http.MethodPost,
-		Path:   regexp.MustCompile("^/(?P<organization>[^/]+)/(?P<project>[^/]+)/_apis/git/repositories/(?P<repositoryId>[^/]+)/commits/[^/]+/statuses$"),
+		Path:   regexp.MustCompile("/(?P<organization>[^/]+)/(?P<project>[^/]+)/_apis/git/repositories/(?P<repositoryId>[^/]+)/commits/[^/]+/statuses$"),
 	},
 	"List Pull Requests": {
 		Method: http.MethodGet,
-		Path:   regexp.MustCompile("^/(?P<organization>[^/]+)/(?P<project>[^/]+)/_apis/git/repositories/(?P<repositoryId>[^/]+)/pullRequests$"),
+		Path:   regexp.MustCompile("/(?P<organization>[^/]+)/(?P<project>[^/]+)/_apis/git/repositories/(?P<repositoryId>[^/]+)/pullRequests$"),
 	},
 	"Get Pull Request": {
 		Method: http.MethodGet,
-		Path:   regexp.MustCompile("^/(?P<organization>[^/]+)/(?P<project>[^/]+)/_apis/git/repositories/(?P<repositoryId>[^/]+)/pullRequests/[^/]+$"),
+		Path:   regexp.MustCompile("/(?P<organization>[^/]+)/(?P<project>[^/]+)/_apis/git/repositories/(?P<repositoryId>[^/]+)/pullRequests/[^/]+$"),
 	},
 	"List Pull Request Labels": {
 		Method: http.MethodGet,
-		Path:   regexp.MustCompile("^/(?P<organization>[^/]+)/(?P<project>[^/]+)/_apis/git/repositories/(?P<repositoryId>[^/]+)/pullRequests/[^/]+/labels$"),
+		Path:   regexp.MustCompile("/(?P<organization>[^/]+)/(?P<project>[^/]+)/_apis/git/repositories/(?P<repositoryId>[^/]+)/pullRequests/[^/]+/labels$"),
 	},
-	"List Project Repositories": {
+	"List Repositories": {
 		Method: http.MethodGet,
-		Path:   regexp.MustCompile("^/(?P<organization>[^/]+)/(?P<project>[^/]+)/_apis/git/repositories$"),
-	},
-	"List Organization Repositories": {
-		Method: http.MethodGet,
-		Path:   regexp.MustCompile("^/(?P<organization>[^/]+)/_apis/git/repositories$"),
+		Path:   regexp.MustCompile("(/(?P<organization>[^/]+))?/(?P<project>[^/]+)/_apis/git/repositories$"),
 	},
 	"Get Commit": {
 		Method: http.MethodGet,
-		Path:   regexp.MustCompile("^/(?P<organization>[^/]+)/(?P<project>[^/]+)/_apis/git/repositories/(?P<repositoryId>[^/]+)/commits/[^/]+$"),
+		Path:   regexp.MustCompile("/(?P<organization>[^/]+)/(?P<project>[^/]+)/_apis/git/repositories/(?P<repositoryId>[^/]+)/commits/[^/]+$"),
 	},
 	"List Resource Locations": {
 		Method: http.MethodOptions,
-		Path:   regexp.MustCompile("^/(?P<organization>[^/]+)/_apis$"),
+		Path:   regexp.MustCompile("/(?P<organization>[^/]+)/_apis$"),
 	},
 	"List Resource Areas": {
 		Method: http.MethodGet,
-		Path:   regexp.MustCompile("^/(?P<organization>[^/]+)/_apis/ResourceAreas$"),
+		Path:   regexp.MustCompile("/(?P<organization>[^/]+)/_apis/ResourceAreas$"),
 	},
 }
 
