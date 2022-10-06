@@ -125,6 +125,7 @@ func (a *Agent) handleRequest(ctx *spcontext.Context, id string, msg *privatevcs
 
 	ctx = ctx.With(
 		"id", id,
+		"pool_id", a.poolConfig.PoolULID,
 		"method", req.Method,
 		"raw_path", req.URL.EscapedPath(),
 		"path", req.URL.Path,
