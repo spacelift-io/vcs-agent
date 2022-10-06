@@ -60,6 +60,10 @@ var azureDevOpsPatterns = map[string]azureDevOpsPattern{
 		Method: http.MethodGet,
 		Path:   regexp.MustCompile("/(?P<organization>[^/]+)/_apis/ResourceAreas$"),
 	},
+	"List Policy Evaluations": {
+		Method: http.MethodGet,
+		Path:   regexp.MustCompile("/(?P<organization>[^/]+)/(?P<project>[^/]+)/_apis/policy/evaluations$"),
+	},
 }
 
 func matchAzureDevOpsRequest(r *http.Request) (string, string, *string, error) {
