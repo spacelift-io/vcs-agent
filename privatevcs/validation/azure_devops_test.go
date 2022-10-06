@@ -105,6 +105,12 @@ func TestAzureDevOpsValidation(t *testing.T) {
 			name:    "List Resource Areas",
 			method:  http.MethodGet,
 		},
+		{
+			path:    "/spacelift-development/backend/_apis/policy/evaluations",
+			matches: true,
+			name:    "List Policy Evaluations",
+			method:  http.MethodGet,
+		},
 		// Temporarily allow any request until we're sure we have the correct set of validation
 		// rules. Once we do, the following test case can be removed, and the failing test
 		// case can be uncommented.
