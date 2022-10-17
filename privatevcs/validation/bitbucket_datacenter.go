@@ -28,7 +28,7 @@ var bitbucketDatacenterPatterns = map[string]bitbucketDatacenterPattern{
 		Method: http.MethodGet,
 		Path:   regexp.MustCompile(`^/rest/api/1.0/projects/(?P<projectKey>[^/]+)/repos/(?P<repositorySlug>[^/]+)/commits/(?P<commitSHA>[^/]+)$`),
 	},
-	"Get Diff": {
+	"Get PR Diff": {
 		Method: http.MethodGet,
 		Path:   regexp.MustCompile(`^/rest/api/1.0/projects/(?P<projectKey>[^/]+)/repos/(?P<repositorySlug>[^/]+)/pull-requests/[0-9]+/diff$`),
 	},
@@ -63,6 +63,14 @@ var bitbucketDatacenterPatterns = map[string]bitbucketDatacenterPattern{
 	"Make PR Comment": {
 		Method: http.MethodPost,
 		Path:   regexp.MustCompile("^/rest/api/1.0/projects/(?P<projectKey>[^/]+)/repos/(?P<repositorySlug>[^/]+)/pull-requests/[0-9]+/comments$"),
+	},
+	"Check PR Mergeability": {
+		Method: http.MethodGet,
+		Path:   regexp.MustCompile("^/rest/api/1.0/projects/(?P<projectKey>[^/]+)/repos/(?P<repositorySlug>[^/]+)/pull-requests/[0-9]+/merge$"),
+	},
+	"Compare Commits": {
+		Method: http.MethodGet,
+		Path:   regexp.MustCompile("^/rest/api/1.0/projects/(?P<projectKey>[^/]+)/repos/(?P<repositorySlug>[^/]+)/compare/commits$"),
 	},
 }
 
