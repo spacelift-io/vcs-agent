@@ -56,6 +56,10 @@ var gitlabPatterns = map[string]gitlabPattern{
 		Method: http.MethodDelete,
 		Path:   regexp.MustCompile("^/api/v4/projects/(?P<project>[^/]+)/environments/[0-9]+$"),
 	},
+	"List Environments": {
+		Method: http.MethodGet,
+		Path:   regexp.MustCompile("^/api/v4/projects/(?P<project>[^/]+)/environments$"),
+	},
 	"Get Affected Files": {
 		Method: http.MethodGet,
 		Path:   regexp.MustCompile("^/api/v4/projects/(?P<project>[^/]+)/repository/compare$"),
