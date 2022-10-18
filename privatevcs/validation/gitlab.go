@@ -11,6 +11,11 @@ type gitlabPattern struct {
 }
 
 var gitlabPatterns = map[string]gitlabPattern{
+	// The GitLab client makes a request to the API base URL to retrieve the rate limit headers
+	"Get Rate Limit Info": {
+		Method: http.MethodGet,
+		Path:   regexp.MustCompile("^/api/v4/?$"),
+	},
 	"Get Current User": {
 		Method: http.MethodGet,
 		Path:   regexp.MustCompile("^/api/v4/user$"),
@@ -51,6 +56,10 @@ var gitlabPatterns = map[string]gitlabPattern{
 		Method: http.MethodDelete,
 		Path:   regexp.MustCompile("^/api/v4/projects/(?P<project>[^/]+)/environments/[0-9]+$"),
 	},
+	"List Environments": {
+		Method: http.MethodGet,
+		Path:   regexp.MustCompile("^/api/v4/projects/(?P<project>[^/]+)/environments$"),
+	},
 	"Get Affected Files": {
 		Method: http.MethodGet,
 		Path:   regexp.MustCompile("^/api/v4/projects/(?P<project>[^/]+)/repository/compare$"),
@@ -74,6 +83,10 @@ var gitlabPatterns = map[string]gitlabPattern{
 	"Get a single Merge Request": {
 		Method: http.MethodGet,
 		Path:   regexp.MustCompile("^/api/v4/projects/(?P<project>[^/]+)/merge_requests/[0-9]+$"),
+	},
+	"Get Merge Request Approvals": {
+		Method: http.MethodGet,
+		Path:   regexp.MustCompile("^/api/v4/projects/(?P<project>[^/]+)/merge_requests/[0-9]+/approvals$"),
 	},
 	"List Merge Requests": {
 		Method: http.MethodGet,
