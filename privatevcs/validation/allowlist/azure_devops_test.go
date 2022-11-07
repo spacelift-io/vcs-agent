@@ -1,4 +1,4 @@
-package validation
+package allowlist
 
 import (
 	"net/http"
