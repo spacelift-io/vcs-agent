@@ -57,9 +57,9 @@ func (l List) Compile() error {
 
 // Validate validates the request against the blocklist. If the request matches
 // any rule, it returns an error.
-func (l List) Validate(ctx *spcontext.Context, vendor validation.Vendor, r *http.Request) (*spcontext.Context, error) {
+func (l List) Validate(ctx *spcontext.Context, _ validation.Vendor, r *http.Request) (*spcontext.Context, error) {
 	for _, rule := range l.Rules {
-		if rule.matches(vendor, r) {
+		if rule.matches(r) {
 			return ctx.With("blocked_by", rule.Name), errors.Errorf("request blocked by rule %q", rule.Name)
 		}
 	}

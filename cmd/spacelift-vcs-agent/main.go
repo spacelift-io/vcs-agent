@@ -14,9 +14,8 @@ import (
 
 	"github.com/bugsnag/bugsnag-go"
 	"github.com/go-kit/kit/log"
-	"github.com/urfave/cli"
-
 	"github.com/spacelift-io/spcontext"
+	"github.com/urfave/cli"
 
 	"github.com/spacelift-io/vcs-agent/agent"
 	"github.com/spacelift-io/vcs-agent/privatevcs"

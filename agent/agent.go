@@ -119,6 +119,18 @@ func (a *Agent) handleRequest(ctx *spcontext.Context, id string, msg *privatevcs
 		}
 	}
 
+	ctx = ctx.With(
+		"id", id,
+		"pool_id", a.poolConfig.PoolULID,
+		"method", req.Method,
+		"raw_path", req.URL.EscapedPath(),
+		"path", req.URL.Path,
+	)
+
+	for key, value := range msg.Headers {
+		req.Header.Set(key, value)
+	}
+
 	ctx, err = a.validator.Validate(ctx, a.vendor, req)
 	if err != nil {
 		return &privatevcs.Response{

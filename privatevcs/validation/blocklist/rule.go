@@ -5,7 +5,6 @@ import (
 	"regexp"
 
 	"github.com/pkg/errors"
-	"github.com/spacelift-io/vcs-agent/privatevcs/validation"
 )
 
 // Rule is a single rule in a blocklist.
@@ -19,10 +18,7 @@ type Rule struct {
 	// The regular expression to match the path against.
 	Path string `json:"path"`
 
-	// The regular expression to match the vendor against.
-	Vendor string `json:"vendor"`
-
-	methodRegexp, pathRegexp, vendorRegexp *regexp.Regexp
+	methodRegexp, pathRegexp *regexp.Regexp
 }
 
 func (r *Rule) compile() error {
@@ -33,19 +29,10 @@ func (r *Rule) compile() error {
 	}
 
 	r.pathRegexp, err = regexp.Compile(r.Path)
-	if err != nil {
-		return errors.Wrapf(err, "couldn't compile path regexp for rule %q", r.Name)
-	}
-
-	r.vendorRegexp, err = regexp.Compile(r.Vendor)
-	return errors.Wrapf(err, "couldn't compile vendor regexp for rule %q", r.Name)
+	return errors.Wrapf(err, "couldn't compile path regexp for rule %q", r.Name)
 }
 
-func (r *Rule) matches(vendor validation.Vendor, req *http.Request) bool {
-	if !r.vendorRegexp.MatchString(string(vendor)) {
-		return false
-	}
-
+func (r *Rule) matches(req *http.Request) bool {
 	if !r.methodRegexp.MatchString(req.Method) {
 		return false
 	}
