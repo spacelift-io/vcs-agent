@@ -21,29 +21,27 @@ type Rule struct {
 	methodRegexp, pathRegexp *regexp.Regexp
 }
 
+// Matches returns true if the rule matches the given request.
+func (r *Rule) Matches(req *http.Request) bool {
+	return r.methodRegexp.MatchString(req.Method) && r.pathRegexp.MatchString(req.URL.Path)
+}
+
+// Validate compiles and validates the rule.
+func (r *Rule) Validate() error {
+	if r.Name == "" {
+		return errors.New("rule name is required")
+	}
+
+	return errors.Wrapf(r.compile(), "could not compile rule %q", r.Name)
+}
+
 func (r *Rule) compile() error {
 	var err error
 	r.methodRegexp, err = regexp.Compile(r.Method)
 	if err != nil {
-		return errors.Wrapf(err, "couldn't compile method regexp for rule %q", r.Name)
+		return errors.Wrapf(err, "invalid method matcher")
 	}
 
 	r.pathRegexp, err = regexp.Compile(r.Path)
-	return errors.Wrapf(err, "couldn't compile path regexp for rule %q", r.Name)
-}
-
-func (r *Rule) matches(req *http.Request) bool {
-	if !r.methodRegexp.MatchString(req.Method) {
-		return false
-	}
-
-	return r.pathRegexp.MatchString(req.URL.Path)
-}
-
-func (r *Rule) validate() error {
-	if r.Name == "" {
-		return errors.New("name is required")
-	}
-
-	return errors.Wrapf(r.compile(), "couldn't validate rule %q", r.Name)
+	return errors.Wrapf(err, "invalid path matcher")
 }

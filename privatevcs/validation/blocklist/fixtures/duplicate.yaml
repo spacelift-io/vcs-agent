@@ -1,0 +1,10 @@
+version: "1.0"
+
+rules:
+  - name: "Duplicate"
+    method: "GET"
+    path: ".*"
+
+  - name: "Duplicate"
+    method: "POST"
+    path: ".*"

@@ -13,8 +13,8 @@ import (
 
 // List is an explicit list of blocked VCS request patterns.
 type List struct {
-	Version string `json:"version"`
-	Rules   []Rule `json:"rules"`
+	Version string  `json:"version"`
+	Rules   []*Rule `json:"rules"`
 }
 
 // Load loads a blocklist from a YAML file and validates it.
@@ -47,7 +47,7 @@ func (l List) Compile() error {
 		}
 		names[rule.Name] = struct{}{}
 
-		if err := rule.validate(); err != nil {
+		if err := rule.Validate(); err != nil {
 			return errors.Wrapf(err, "invalid rule %d", i)
 		}
 	}
@@ -59,7 +59,7 @@ func (l List) Compile() error {
 // any rule, it returns an error.
 func (l List) Validate(ctx *spcontext.Context, _ validation.Vendor, r *http.Request) (*spcontext.Context, error) {
 	for _, rule := range l.Rules {
-		if rule.matches(r) {
+		if rule.Matches(r) {
 			return ctx.With("blocked_by", rule.Name), errors.Errorf("request blocked by rule %q", rule.Name)
 		}
 	}
