@@ -131,7 +131,7 @@ func TestAzureDevOpsValidation(t *testing.T) {
 		request, err := http.NewRequest(testCase.method, "https://github.myorg.com"+testCase.path, nil)
 		require.NoError(t, err, "could not create request")
 
-		name, project, _, err := matchAzureDevOpsRequest(request)
+		name, project, err := matchAzureDevOpsRequest(request)
 
 		if testCase.matches {
 			require.NoError(t, err, "could not find match for %q (%s)", testCase.name, testCase.path)

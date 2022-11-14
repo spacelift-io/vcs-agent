@@ -227,7 +227,7 @@ func TestGitHubEnterpriseValidation(t *testing.T) {
 		request, err := http.NewRequest(testCase.method, "https://github.myorg.com"+testCase.path, nil)
 		require.NoError(t, err, "could not create request")
 
-		name, project, subdomain, err := matchGitHubEnterpriseRequest(request)
+		name, project, err := matchGitHubEnterpriseRequest(request)
 
 		if testCase.matches {
 			require.NoError(t, err, "could not find match for %q", testCase.name)
@@ -235,12 +235,6 @@ func TestGitHubEnterpriseValidation(t *testing.T) {
 
 			if testCase.project != nil {
 				require.Equal(t, *testCase.project, project, "project did not match for %q", testCase.name)
-			}
-			if testCase.subdomain != nil {
-				require.NotNil(t, subdomain, "expected subdomain to be returned for %q", testCase.name)
-				require.Equal(t, *testCase.subdomain, *subdomain, "subdomain did not match for %q", testCase.name)
-			} else {
-				require.Nil(t, subdomain, "expected subdomain to be nil for %q", testCase.name)
 			}
 		} else {
 			require.ErrorIs(t, ErrNoMatch, err)

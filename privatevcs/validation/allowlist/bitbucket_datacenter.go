@@ -74,7 +74,7 @@ var bitbucketDatacenterPatterns = map[string]bitbucketDatacenterPattern{
 	},
 }
 
-func matchBitbucketDatacenterRequest(r *http.Request) (string, string, *string, error) {
+func matchBitbucketDatacenterRequest(r *http.Request) (string, string, error) {
 	for name, pattern := range bitbucketDatacenterPatterns {
 		if r.Method != pattern.Method {
 			continue
@@ -93,8 +93,8 @@ func matchBitbucketDatacenterRequest(r *http.Request) (string, string, *string, 
 			if repository != "" {
 				outProject = fmt.Sprintf("%s/%s", project, repository)
 			}
-			return name, outProject, nil, nil
+			return name, outProject, nil
 		}
 	}
-	return "", "", nil, ErrNoMatch
+	return "", "", ErrNoMatch
 }

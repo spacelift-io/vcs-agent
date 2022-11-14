@@ -119,7 +119,7 @@ func (a *Agent) handleRequest(ctx *spcontext.Context, id string, msg *privatevcs
 		}
 	}
 
-	ctx = ctx.With(
+	ctx = validation.RewriteGitHubTarballRequest(ctx, a.vendor, req).With(
 		"id", id,
 		"pool_id", a.poolConfig.PoolULID,
 		"method", req.Method,

@@ -31,14 +31,9 @@ func New(projectRegexp string) (*List, error) {
 // Validate validates the request and returns an error if the request should be
 // blocked.
 func (l List) Validate(ctx *spcontext.Context, vendor validation.Vendor, req *http.Request) (*spcontext.Context, error) {
-	name, project, subdomain, err := MatchRequest(vendor, req)
+	name, project, err := MatchRequest(vendor, req)
 	if err != nil {
 		return ctx.With("match_error", err), ctx.RawError(err, "invalid request")
-	}
-
-	if subdomain != nil {
-		req.URL.Host = *subdomain + "." + req.URL.Host
-		req.Host = req.URL.Host
 	}
 
 	ctx = ctx.With("name", name)

@@ -3,17 +3,14 @@ package allowlist
 import (
 	"net/http"
 	"regexp"
-	"strings"
 
-	"github.com/spacelift-io/vcs-agent/nullable"
+	"github.com/spacelift-io/vcs-agent/privatevcs/validation"
 )
 
 type githubEnterprisePattern struct {
 	Method string
 	Path   *regexp.Regexp
 }
-
-var tarballRegex *regexp.Regexp = regexp.MustCompile("^/(_?codeload/)?(?P<project>[^/]+/[^/]+)/legacy.tar.gz/[^/]+$")
 
 var githubEnterprisePatterns = map[string]githubEnterprisePattern{
 	"Compare Trees": {
@@ -46,7 +43,7 @@ var githubEnterprisePatterns = map[string]githubEnterprisePattern{
 	},
 	"Get Repository Tarball": {
 		Method: http.MethodGet,
-		Path:   tarballRegex,
+		Path:   validation.GitHubTarballRegex,
 	},
 	"GraphQL Endpoint": {
 		Method: http.MethodPost,
@@ -78,7 +75,7 @@ var githubEnterprisePatterns = map[string]githubEnterprisePattern{
 	},
 }
 
-func matchGitHubEnterpriseRequest(r *http.Request) (string, string, *string, error) {
+func matchGitHubEnterpriseRequest(r *http.Request) (string, string, error) {
 	for name, pattern := range githubEnterprisePatterns {
 		if r.Method != pattern.Method {
 			continue
@@ -90,29 +87,8 @@ func matchGitHubEnterpriseRequest(r *http.Request) (string, string, *string, err
 				project = matches[index]
 			}
 
-			_, subdomain := IsGitHubTarballRequest(r)
-
-			return name, project, subdomain, nil
+			return name, project, nil
 		}
 	}
-	return "", "", nil, ErrNoMatch
-}
-
-// IsGitHubTarballRequest returns whether the request is a GitHub Enterprise tarball download request.
-// If it is a download request, and if the server is using subdomain isolation, subdomain
-// will contain the subdomain to prefix the request hostname with.
-func IsGitHubTarballRequest(r *http.Request) (ok bool, subdomain *string) {
-	// If we're trying to download the source, and the path doesn't start with "/_codeload"
-	// or "/codeload" the GHE instance must have subdomain isolation enabled, so we need to prefix the
-	// hostname with "codeload."
-	if tarballRegex.MatchString(r.URL.EscapedPath()) {
-		if !strings.HasPrefix(r.URL.EscapedPath(), "/_codeload") &&
-			!strings.HasPrefix(r.URL.EscapedPath(), "/codeload") {
-			subdomain = nullable.String("codeload")
-		}
-
-		return true, subdomain
-	}
-
-	return false, nil
+	return "", "", ErrNoMatch
 }

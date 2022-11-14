@@ -10,7 +10,7 @@ import (
 // ErrNoMatch is returned when the request didn't match any planned API usage.
 var ErrNoMatch = fmt.Errorf("no match for request")
 
-var vendorMatchers = map[validation.Vendor]func(r *http.Request) (name string, project string, subdomain *string, err error){
+var vendorMatchers = map[validation.Vendor]func(r *http.Request) (name string, project string, err error){
 	validation.AzureDevOps:         matchAzureDevOpsRequest,
 	validation.BitbucketDatacenter: matchBitbucketDatacenterRequest,
 	validation.GitHubEnterprise:    matchGitHubEnterpriseRequest,
@@ -20,6 +20,6 @@ var vendorMatchers = map[validation.Vendor]func(r *http.Request) (name string, p
 // MatchRequest matches the request based on the VCS vendor.
 // It returns the API usage human-friendly name, as well as the target project.
 // If the request isn't scope to a project (i.e. listing projects) it returns an empty string.
-func MatchRequest(vendor validation.Vendor, r *http.Request) (name string, project string, subdomain *string, err error) {
+func MatchRequest(vendor validation.Vendor, r *http.Request) (name string, project string, err error) {
 	return vendorMatchers[vendor](r)
 }
