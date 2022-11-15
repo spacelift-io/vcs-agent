@@ -59,6 +59,12 @@ var (
 		Value:  "",
 	}
 
+	flagBugsnagDisable = cli.BoolFlag{
+		Name:   "disable-bugsnag",
+		EnvVar: "SPACELIFT_VCS_AGENT_BUGSNAG_DISABLE",
+		Usage:  "Disable Bugsnag reporting entirely.",
+	}
+
 	flagParallelism = cli.IntFlag{
 		Name:   "parallelism",
 		EnvVar: "SPACELIFT_VCS_AGENT_PARALLELISM",
@@ -127,15 +133,17 @@ var app = &cli.App{
 			apiKey = apiKeyOverride
 		}
 
-		ctx.Notifier = bugsnag.New(bugsnag.Configuration{
-			APIKey: apiKey,
-			Logger: &spcontext.BugsnagLogger{
-				Ctx: *ctx,
-			},
-			Synchronous: true,
-		})
+		if !cmdCtx.Bool(flagBugsnagDisable.Name) {
+			ctx.Notifier = bugsnag.New(bugsnag.Configuration{
+				APIKey: apiKey,
+				Logger: &spcontext.BugsnagLogger{
+					Ctx: *ctx,
+				},
+				Synchronous: true,
+			})
 
-		defer ctx.Notifier.AutoNotify(ctx)
+			defer ctx.Notifier.AutoNotify(ctx)
+		}
 
 		var poolConfig privatevcs.AgentPoolConfig
 		configBytes, err := base64.StdEncoding.DecodeString(cmdCtx.String(flagPoolToken.Name))
