@@ -1,0 +1,10 @@
+version: "1.0"
+
+rules:
+  - name: "GET /.*"
+    method: "GET"
+    path: ".*"
+
+  - name: "POST /.*"
+    method: "POST"
+    path: ".*"

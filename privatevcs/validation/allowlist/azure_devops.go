@@ -1,4 +1,4 @@
-package validation
+package allowlist
 
 import (
 	"fmt"
@@ -66,7 +66,7 @@ var azureDevOpsPatterns = map[string]azureDevOpsPattern{
 	},
 }
 
-func matchAzureDevOpsRequest(r *http.Request) (string, string, *string, error) {
+func matchAzureDevOpsRequest(r *http.Request) (string, string, error) {
 	for name, pattern := range azureDevOpsPatterns {
 		if r.Method != pattern.Method {
 			continue
@@ -89,11 +89,11 @@ func matchAzureDevOpsRequest(r *http.Request) (string, string, *string, error) {
 				projectName = fmt.Sprintf("%s/%s/%s", organization, project, repositoryID)
 			}
 
-			return name, projectName, nil, nil
+			return name, projectName, nil
 		}
 	}
 
 	// Temporarily just allow any resources - we'll restrict later once we're certain we have
 	// a stable set of endpoints in the validation rules
-	return "Unknown Request", "", nil, nil
+	return "Unknown Request", "", nil
 }

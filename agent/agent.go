@@ -4,21 +4,17 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"os"
-	"regexp"
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/spacelift-io/spcontext"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
-
-	"github.com/spacelift-io/spcontext"
 
 	"github.com/spacelift-io/vcs-agent/privatevcs"
 	"github.com/spacelift-io/vcs-agent/privatevcs/validation"
@@ -27,20 +23,20 @@ import (
 // Agent is an agent connected to a VCS Gateway. Can handle only one concurrent request.
 type Agent struct {
 	poolConfig         *privatevcs.AgentPoolConfig
-	projectRegexp      *regexp.Regexp
 	targetBaseEndpoint string
-	vendor             string
+	vendor             validation.Vendor
 	metadata           map[string]string
+	validator          validation.Strategy
 }
 
 // New creates a new Agent.
-func New(poolConfig *privatevcs.AgentPoolConfig, targetBaseEndpoint, vendor string, projectRegexp *regexp.Regexp, metadata map[string]string) *Agent {
+func New(poolConfig *privatevcs.AgentPoolConfig, targetBaseEndpoint, vendor string, validator validation.Strategy, metadata map[string]string) *Agent {
 	return &Agent{
-		poolConfig:         poolConfig,
-		projectRegexp:      projectRegexp,
-		targetBaseEndpoint: targetBaseEndpoint,
-		vendor:             vendor,
 		metadata:           metadata,
+		poolConfig:         poolConfig,
+		targetBaseEndpoint: targetBaseEndpoint,
+		validator:          validator,
+		vendor:             validation.Vendor(vendor),
 	}
 }
 
@@ -123,7 +119,7 @@ func (a *Agent) handleRequest(ctx *spcontext.Context, id string, msg *privatevcs
 		}
 	}
 
-	ctx = ctx.With(
+	ctx = validation.RewriteGitHubTarballRequest(ctx, a.vendor, req).With(
 		"id", id,
 		"pool_id", a.poolConfig.PoolULID,
 		"method", req.Method,
@@ -135,12 +131,8 @@ func (a *Agent) handleRequest(ctx *spcontext.Context, id string, msg *privatevcs
 		req.Header.Set(key, value)
 	}
 
-	name, project, subdomain, err := validation.MatchRequest(a.vendor, req)
+	ctx, err = a.validator.Validate(ctx, a.vendor, req)
 	if err != nil {
-		ctx := ctx.With(
-			"match_error", err,
-		)
-		err := ctx.RawError(err, "invalid request")
 		return &privatevcs.Response{
 			Id: id,
 			Content: &privatevcs.Response_Error{
@@ -148,46 +140,6 @@ func (a *Agent) handleRequest(ctx *spcontext.Context, id string, msg *privatevcs
 			},
 		}
 	}
-
-	if subdomain != nil {
-		req.URL.Host = *subdomain + "." + req.URL.Host
-		req.Host = req.URL.Host
-	}
-
-	ctx = ctx.With("name", name)
-
-	projectUnescaped, err := url.PathUnescape(project)
-	if err != nil {
-		ctx := ctx.With(
-			"match_error", err,
-			"project_urlencoded", project,
-		)
-		err := ctx.RawError(err, "couldn't url-unescape project name")
-		return &privatevcs.Response{
-			Id: id,
-			Content: &privatevcs.Response_Error{
-				Error: err.Error(),
-			},
-		}
-	}
-
-	if project != "" && !a.projectRegexp.MatchString(projectUnescaped) {
-		ctx := ctx.With(
-			"match_error", err,
-			"project", projectUnescaped,
-			"project_regexp", a.projectRegexp.String(),
-		)
-		err := fmt.Errorf("request project didn't match allowed projects regexp")
-		err = ctx.RawError(err, "invalid request")
-		return &privatevcs.Response{
-			Id: id,
-			Content: &privatevcs.Response_Error{
-				Error: err.Error(),
-			},
-		}
-	}
-
-	ctx = ctx.With("project", project)
 
 	timeoutCtx, cancel := spcontext.WithTimeout(ctx, time.Second*25)
 	defer cancel()

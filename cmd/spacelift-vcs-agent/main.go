@@ -7,7 +7,6 @@ import (
 	stdlog "log"
 	"os"
 	"os/signal"
-	"regexp"
 	"strings"
 	"sync"
 	"syscall"
@@ -15,12 +14,14 @@ import (
 
 	"github.com/bugsnag/bugsnag-go"
 	"github.com/go-kit/kit/log"
-	"github.com/urfave/cli"
-
 	"github.com/spacelift-io/spcontext"
+	"github.com/urfave/cli"
 
 	"github.com/spacelift-io/vcs-agent/agent"
 	"github.com/spacelift-io/vcs-agent/privatevcs"
+	"github.com/spacelift-io/vcs-agent/privatevcs/validation"
+	"github.com/spacelift-io/vcs-agent/privatevcs/validation/allowlist"
+	"github.com/spacelift-io/vcs-agent/privatevcs/validation/blocklist"
 )
 
 const (
@@ -58,6 +59,12 @@ var (
 		Value:  "",
 	}
 
+	flagBugsnagDisable = cli.BoolFlag{
+		Name:   "disable-bugsnag",
+		EnvVar: "SPACELIFT_VCS_AGENT_BUGSNAG_DISABLE",
+		Usage:  "Disable Bugsnag reporting entirely.",
+	}
+
 	flagParallelism = cli.IntFlag{
 		Name:   "parallelism",
 		EnvVar: "SPACELIFT_VCS_AGENT_PARALLELISM",
@@ -84,6 +91,18 @@ var (
 		EnvVar:   "SPACELIFT_VCS_AGENT_VENDOR",
 		Usage:    fmt.Sprintf("VCS vendor proxied by this agent. Available vendors: %s", strings.Join(availableVendors, ", ")),
 		Required: true,
+	}
+
+	flagUseAllowlist = cli.BoolFlag{
+		Name:   "use-allowlist",
+		EnvVar: "SPACELIFT_VCS_AGENT_USE_ALLOWLIST",
+		Usage:  "Whether to use the allowlist to validate API calls. Incompatible with --blocklist-path.",
+	}
+
+	flagBlocklistPath = cli.StringFlag{
+		Name:   "blocklist-path",
+		EnvVar: "SPACELIFT_VCS_AGENT_BLOCKLIST_PATH",
+		Usage:  "Path to the YAML blocklist file. Incompatible with --use-allowlist.",
 	}
 )
 
@@ -114,15 +133,17 @@ var app = &cli.App{
 			apiKey = apiKeyOverride
 		}
 
-		ctx.Notifier = bugsnag.New(bugsnag.Configuration{
-			APIKey: apiKey,
-			Logger: &spcontext.BugsnagLogger{
-				Ctx: *ctx,
-			},
-			Synchronous: true,
-		})
+		if !cmdCtx.Bool(flagBugsnagDisable.Name) {
+			ctx.Notifier = bugsnag.New(bugsnag.Configuration{
+				APIKey: apiKey,
+				Logger: &spcontext.BugsnagLogger{
+					Ctx: *ctx,
+				},
+				Synchronous: true,
+			})
 
-		defer ctx.Notifier.AutoNotify(ctx)
+			defer ctx.Notifier.AutoNotify(ctx)
+		}
 
 		var poolConfig privatevcs.AgentPoolConfig
 		configBytes, err := base64.StdEncoding.DecodeString(cmdCtx.String(flagPoolToken.Name))
@@ -137,14 +158,34 @@ var app = &cli.App{
 			stdlog.Fatal("--allowed-projects is not currently supported for the GitHub Enterprise integration")
 		}
 
-		allowedProjectsRegexp, err := regexp.Compile(cmdCtx.String(flagAllowedProjects.Name))
-		if err != nil {
-			stdlog.Fatal("couldn't compile allowed projects regexp: ", err)
-		}
-
 		agentMetadata := loadMetadata()
 
-		a := agent.New(&poolConfig, cmdCtx.String(flagTargetBaseEndpoint.Name), vendor, allowedProjectsRegexp, agentMetadata)
+		var validationStrategy validation.Strategy = new(blocklist.List)
+
+		useAllowlist := cmdCtx.Bool(flagUseAllowlist.Name)
+		if useAllowlist {
+			if validationStrategy, err = allowlist.New(cmdCtx.String(flagAllowedProjects.Name)); err != nil {
+				stdlog.Fatal("could not create request allowlist: ", err.Error())
+			}
+		}
+
+		if cmdCtx.IsSet(flagBlocklistPath.Name) {
+			if useAllowlist {
+				stdlog.Fatal("--use-allowlist and --blocklist-path are mutually exclusive")
+			}
+
+			if validationStrategy, err = blocklist.Load(cmdCtx.String(flagBlocklistPath.Name)); err != nil {
+				stdlog.Fatal("could not create request blocklist: ", err.Error())
+			}
+		}
+
+		a := agent.New(
+			&poolConfig,
+			cmdCtx.String(flagTargetBaseEndpoint.Name),
+			vendor,
+			validationStrategy,
+			agentMetadata,
+		)
 
 		parallelismSemaphore := make(chan struct{}, cmdCtx.Int(flagParallelism.Name))
 

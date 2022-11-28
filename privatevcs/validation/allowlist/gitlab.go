@@ -1,4 +1,4 @@
-package validation
+package allowlist
 
 import (
 	"net/http"
@@ -110,7 +110,7 @@ var gitlabPatterns = map[string]gitlabPattern{
 	},
 }
 
-func matchGitLabRequest(r *http.Request) (string, string, *string, error) {
+func matchGitLabRequest(r *http.Request) (string, string, error) {
 	for name, pattern := range gitlabPatterns {
 		if r.Method != pattern.Method {
 			continue
@@ -121,8 +121,8 @@ func matchGitLabRequest(r *http.Request) (string, string, *string, error) {
 			if index := pattern.Path.SubexpIndex("project"); index != -1 {
 				project = matches[index]
 			}
-			return name, project, nil, nil
+			return name, project, nil
 		}
 	}
-	return "", "", nil, ErrNoMatch
+	return "", "", ErrNoMatch
 }
