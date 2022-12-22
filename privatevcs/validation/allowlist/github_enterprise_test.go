@@ -220,6 +220,12 @@ func TestGitHubEnterpriseValidation(t *testing.T) {
 			name:    "Get app details",
 			method:  http.MethodGet,
 		},
+		{
+			path:    "/api/v3/users/spacelift",
+			matches: true,
+			name:    "Get user details",
+			method:  http.MethodGet,
+		},
 	}
 
 	for i := range testCases {
