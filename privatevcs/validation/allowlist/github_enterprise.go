@@ -73,6 +73,10 @@ var githubEnterprisePatterns = map[string]githubEnterprisePattern{
 		Method: http.MethodGet,
 		Path:   regexp.MustCompile("^/(api/v3/)?app$"),
 	},
+	"Get user details": {
+		Method: http.MethodGet,
+		Path:   regexp.MustCompile("^/(api/v3/)?users/[^/]+$"),
+	},
 }
 
 func matchGitHubEnterpriseRequest(r *http.Request) (string, string, error) {
