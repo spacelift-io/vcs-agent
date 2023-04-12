@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -34,7 +35,7 @@ func New(poolConfig *privatevcs.AgentPoolConfig, targetBaseEndpoint, vendor stri
 	return &Agent{
 		metadata:           metadata,
 		poolConfig:         poolConfig,
-		targetBaseEndpoint: targetBaseEndpoint,
+		targetBaseEndpoint: strings.TrimSuffix(targetBaseEndpoint, "/"),
 		validator:          validator,
 		vendor:             validation.Vendor(vendor),
 	}
