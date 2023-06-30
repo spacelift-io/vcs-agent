@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -21,6 +20,10 @@ import (
 	"github.com/spacelift-io/vcs-agent/privatevcs/validation"
 )
 
+type RequestDoer interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
 // Agent is an agent connected to a VCS Gateway. Can handle only one concurrent request.
 type Agent struct {
 	poolConfig         *privatevcs.AgentPoolConfig
@@ -28,16 +31,18 @@ type Agent struct {
 	vendor             validation.Vendor
 	metadata           map[string]string
 	validator          validation.Strategy
+	httpClient         RequestDoer
 }
 
 // New creates a new Agent.
-func New(poolConfig *privatevcs.AgentPoolConfig, targetBaseEndpoint, vendor string, validator validation.Strategy, metadata map[string]string) *Agent {
+func New(poolConfig *privatevcs.AgentPoolConfig, targetBaseEndpoint, vendor string, validator validation.Strategy, metadata map[string]string, httpClient RequestDoer) *Agent {
 	return &Agent{
 		metadata:           metadata,
 		poolConfig:         poolConfig,
 		targetBaseEndpoint: strings.TrimSuffix(targetBaseEndpoint, "/"),
 		validator:          validator,
 		vendor:             validation.Vendor(vendor),
+		httpClient:         httpClient,
 	}
 }
 
@@ -147,7 +152,7 @@ func (a *Agent) handleRequest(ctx *spcontext.Context, id string, msg *privatevcs
 	req = req.WithContext(timeoutCtx)
 
 	start := time.Now()
-	res, err := http.DefaultClient.Do(req)
+	res, err := a.httpClient.Do(req)
 	if err != nil {
 		ctx.With(
 			"error", err.Error(),
@@ -165,7 +170,7 @@ func (a *Agent) handleRequest(ctx *spcontext.Context, id string, msg *privatevcs
 		"status_code", res.StatusCode,
 	).Infof("Request served.")
 
-	data, err := ioutil.ReadAll(res.Body)
+	data, err := io.ReadAll(res.Body)
 	if err != nil {
 		return &privatevcs.Response{
 			Id: id,
