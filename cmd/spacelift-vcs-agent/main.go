@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/spacelift-io/vcs-agent/logging"
 	stdlog "log"
 	"net/http"
 	"os"
@@ -20,6 +19,7 @@ import (
 	"github.com/urfave/cli"
 
 	"github.com/spacelift-io/vcs-agent/agent"
+	"github.com/spacelift-io/vcs-agent/logging"
 	"github.com/spacelift-io/vcs-agent/privatevcs"
 	"github.com/spacelift-io/vcs-agent/privatevcs/validation"
 	"github.com/spacelift-io/vcs-agent/privatevcs/validation/allowlist"
