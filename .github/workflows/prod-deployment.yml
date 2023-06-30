@@ -9,7 +9,7 @@ jobs:
   prod-agent-deployment:
     name: Build and upload agent
     runs-on: ubuntu-latest
-    container: golang:1.18
+    container: golang:1.19
     env:
       BASE_NAME: spacelift-vcs-agent
       BIN_DIR: build
