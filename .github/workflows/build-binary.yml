@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Check out repository code
-        uses: actions/checkout@master
+        uses: actions/checkout@v3
 
       - name: parse short SHA
         id: vars
