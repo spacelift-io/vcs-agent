@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	stdlog "log"
+	"net/http"
 	"os"
 	"os/signal"
 	"strings"
@@ -18,6 +19,7 @@ import (
 	"github.com/urfave/cli"
 
 	"github.com/spacelift-io/vcs-agent/agent"
+	"github.com/spacelift-io/vcs-agent/logging"
 	"github.com/spacelift-io/vcs-agent/privatevcs"
 	"github.com/spacelift-io/vcs-agent/privatevcs/validation"
 	"github.com/spacelift-io/vcs-agent/privatevcs/validation/allowlist"
@@ -104,6 +106,12 @@ var (
 		EnvVar: "SPACELIFT_VCS_AGENT_BLOCKLIST_PATH",
 		Usage:  "Path to the YAML blocklist file. Incompatible with --use-allowlist.",
 	}
+
+	flagDebugPrintAll = cli.BoolFlag{
+		Name:   "debug-print-all",
+		EnvVar: "DEBUG_PRINT_ALL",
+		Usage:  "Whether to print all requests and responses to stdout.",
+	}
 )
 
 var app = &cli.App{
@@ -114,6 +122,7 @@ var app = &cli.App{
 		flagPoolToken,
 		flagTargetBaseEndpoint,
 		flagVCSVendor,
+		flagDebugPrintAll,
 	},
 	Action: func(cmdCtx *cli.Context) error {
 		availableVendorsMap := make(map[string]bool)
@@ -179,12 +188,21 @@ var app = &cli.App{
 			}
 		}
 
+		var httpClient agent.RequestDoer = http.DefaultClient
+		if cmdCtx.Bool(flagDebugPrintAll.Name) {
+			httpClient = &logging.HTTPClient{
+				Wrapped: http.DefaultClient,
+				Out:     &logging.ConcurrentSafeWriter{Out: os.Stdout},
+			}
+		}
+
 		a := agent.New(
 			&poolConfig,
 			cmdCtx.String(flagTargetBaseEndpoint.Name),
 			vendor,
 			validationStrategy,
 			agentMetadata,
+			httpClient,
 		)
 
 		parallelismSemaphore := make(chan struct{}, cmdCtx.Int(flagParallelism.Name))

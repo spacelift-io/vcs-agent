@@ -16,6 +16,7 @@
 
 # Developer-specific environment file
 .env
+.idea
 
 # Binary
 cmd/spacelift-vcs-agent/spacelift-vcs-agent
