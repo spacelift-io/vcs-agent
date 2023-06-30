@@ -12,11 +12,13 @@ import (
 	"github.com/kr/text"
 )
 
+// HTTPClient is a wrapper around http.Client that logs requests and responses.
 type HTTPClient struct {
 	Wrapped *http.Client
 	Out     io.Writer
 }
 
+// Do performs an HTTP request and logs the request and response.
 func (cli *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 	interpretControlSequences := func(text string) string {
 		text = strings.ReplaceAll(text, `\n`, "\n")
@@ -67,11 +69,13 @@ func maybeJSONFromBody(data []byte) []byte {
 	return data
 }
 
+// ConcurrentSafeWriter is a wrapper around an io.Writer that makes it safe to use concurrently.
 type ConcurrentSafeWriter struct {
 	Out   io.Writer
 	mutex sync.Mutex
 }
 
+// Write writes to the underlying io.Writer, locking the mutex while doing so.
 func (w *ConcurrentSafeWriter) Write(p []byte) (n int, err error) {
 	w.mutex.Lock()
 	defer w.mutex.Unlock()

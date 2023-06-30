@@ -20,6 +20,7 @@ import (
 	"github.com/spacelift-io/vcs-agent/privatevcs/validation"
 )
 
+// RequestDoer is an interface for http request
 type RequestDoer interface {
 	Do(req *http.Request) (*http.Response, error)
 }
