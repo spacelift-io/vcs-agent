@@ -20,14 +20,20 @@ type HTTPClient struct {
 
 // Do performs an HTTP request and logs the request and response.
 func (cli *HTTPClient) Do(req *http.Request) (*http.Response, error) {
+	buffer := &bytes.Buffer{}
+	defer cli.Out.Write(buffer.Bytes())
+
 	interpretControlSequences := func(text string) string {
 		text = strings.ReplaceAll(text, `\n`, "\n")
 		text = strings.ReplaceAll(text, `\t`, "\t")
 		return text
 	}
 
+	reqWriter := text.NewIndentWriter(buffer, []byte("> "))
+	reqWriter.Write([]byte(req.Method + " " + req.URL.String() + "\n"))
+	printHeaders(reqWriter, req.Header)
+
 	if req.Body != nil {
-		reqWriter := text.NewIndentWriter(cli.Out, []byte("> "))
 		data, err := io.ReadAll(req.Body)
 		if err != nil {
 			return nil, fmt.Errorf("couldn't read request body: %w", err)
@@ -36,14 +42,18 @@ func (cli *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 
 		dataToLog := maybeJSONFromBody(data)
 		fmt.Fprintf(reqWriter, interpretControlSequences(string(dataToLog))+"\n")
+		buffer.Write([]byte("\n"))
 	}
 
-	resWriter := text.NewIndentWriter(cli.Out, []byte("< "))
+	resWriter := text.NewIndentWriter(buffer, []byte("< "))
 	res, resErr := cli.Wrapped.Do(req)
 	if resErr != nil {
 		_, _ = fmt.Fprintf(resWriter, "error: %s\n", resErr)
 		return res, resErr
 	}
+
+	fmt.Fprintf(resWriter, "%s\n", res.Status)
+	printHeaders(resWriter, res.Header)
 	data, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't read response body: %w", err)
@@ -52,9 +62,17 @@ func (cli *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 
 	dataToLog := maybeJSONFromBody(data)
 	fmt.Fprintf(resWriter, interpretControlSequences(string(dataToLog))+"\n")
-	fmt.Fprintf(cli.Out, "\n")
+	fmt.Fprintf(buffer, "\n")
 
 	return res, nil
+}
+
+func printHeaders(writer io.Writer, headers http.Header) {
+	for name, values := range headers {
+		for _, value := range values {
+			_, _ = fmt.Fprintf(writer, "%s: %s\n", name, value)
+		}
+	}
 }
 
 func maybeJSONFromBody(data []byte) []byte {
