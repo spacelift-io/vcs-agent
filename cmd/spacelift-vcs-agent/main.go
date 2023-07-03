@@ -109,7 +109,7 @@ var (
 
 	flagDebugPrintAll = cli.BoolFlag{
 		Name:   "debug-print-all",
-		EnvVar: "DEBUG_PRINT_ALL",
+		EnvVar: "SPACELIFT_VCS_AGENT_DEBUG_PRINT_ALL",
 		Usage:  "Whether to print all requests and responses to stdout.",
 	}
 )
