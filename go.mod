@@ -10,6 +10,7 @@ require (
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/go-kit/kit v0.10.0
 	github.com/kr/pretty v0.2.1 // indirect
+	github.com/kr/text v0.2.0
 	github.com/onsi/gomega v1.16.0
 	github.com/pkg/errors v0.9.1
 	github.com/spacelift-io/spcontext v0.0.0-20211125123836-a42f9fe4ad2c

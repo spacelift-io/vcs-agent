@@ -6,14 +6,18 @@ jobs:
   preprod-agent-deployment:
     name: Build and upload agent
     runs-on: ubuntu-latest
-    container: golang:1.18
+    container: golang:1.20
+
     env:
       BASE_NAME: spacelift-vcs-agent
       BIN_DIR: build
 
     steps:
       - name: Check out repository code
-        uses: actions/checkout@master
+        uses: actions/checkout@v3
+
+      - name: Mark source directory as safe. # This is some duct tape over the git version in the Go image complaining about this since one of the 1.19.x versions. Feel free to remove once it doesn't break the build anymore. See https://github.com/actions/runner/issues/2033 and https://github.com/actions/checkout/issues/760#issuecomment-1097797031
+        run: git config --global --add safe.directory $GITHUB_WORKSPACE
 
       - name: parse short SHA
         id: vars
