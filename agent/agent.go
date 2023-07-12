@@ -35,6 +35,7 @@ type Agent struct {
 	httpClient         RequestDoer
 
 	HTTPDisableResponseCompression bool
+	HTTPRemoveHeaderContentLength  bool
 }
 
 // New creates a new Agent.
@@ -142,6 +143,10 @@ func (a *Agent) handleRequest(ctx *spcontext.Context, id string, msg *privatevcs
 
 	if a.HTTPDisableResponseCompression {
 		req.Header.Set("Accept-Encoding", "identity")
+	}
+
+	if a.HTTPRemoveHeaderContentLength {
+		req.Header.Del("Content-Length")
 	}
 
 	ctx, err = a.validator.Validate(ctx, a.vendor, req)
