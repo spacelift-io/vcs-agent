@@ -33,6 +33,8 @@ type Agent struct {
 	metadata           map[string]string
 	validator          validation.Strategy
 	httpClient         RequestDoer
+
+	HTTPDisableResponseCompression bool
 }
 
 // New creates a new Agent.
@@ -136,6 +138,10 @@ func (a *Agent) handleRequest(ctx *spcontext.Context, id string, msg *privatevcs
 
 	for key, value := range msg.Headers {
 		req.Header.Set(key, value)
+	}
+
+	if a.HTTPDisableResponseCompression {
+		req.Header.Set("Accept-Encoding", "identity")
 	}
 
 	ctx, err = a.validator.Validate(ctx, a.vendor, req)
