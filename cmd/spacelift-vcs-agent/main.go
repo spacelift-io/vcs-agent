@@ -122,7 +122,7 @@ var (
 	flagHTTPRemoveContentLengthHeader = cli.BoolFlag{
 		Name:   "http-remove-content-length-header",
 		EnvVar: "SPACELIFT_VCS_AGENT_HTTP_REMOVE_CONTENT_LENGTH_HEADER",
-		Usage:  "Whether to remove Content-Length header from HTTP requests.",
+		Usage:  "Whether to remove Content-Length header from HTTP requests (experimental, might be removed in a future release).",
 	}
 )
 
