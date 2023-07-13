@@ -112,6 +112,12 @@ var (
 		EnvVar: "SPACELIFT_VCS_AGENT_DEBUG_PRINT_ALL",
 		Usage:  "Whether to print all requests and responses to stdout.",
 	}
+
+	flagHTTPDisableResponseCompression = cli.BoolFlag{
+		Name:   "http-disable-response-compression",
+		EnvVar: "SPACELIFT_VCS_AGENT_HTTP_DISABLE_RESPONSE_COMPRESSION",
+		Usage:  "Whether to disable HTTP response compression.",
+	}
 )
 
 var app = &cli.App{
@@ -123,6 +129,7 @@ var app = &cli.App{
 		flagTargetBaseEndpoint,
 		flagVCSVendor,
 		flagDebugPrintAll,
+		flagHTTPDisableResponseCompression,
 	},
 	Action: func(cmdCtx *cli.Context) error {
 		availableVendorsMap := make(map[string]bool)
@@ -204,6 +211,7 @@ var app = &cli.App{
 			agentMetadata,
 			httpClient,
 		)
+		a.HTTPDisableResponseCompression = cmdCtx.Bool(flagHTTPDisableResponseCompression.Name)
 
 		parallelismSemaphore := make(chan struct{}, cmdCtx.Int(flagParallelism.Name))
 
