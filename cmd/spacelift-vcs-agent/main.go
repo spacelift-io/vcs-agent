@@ -112,6 +112,18 @@ var (
 		EnvVar: "SPACELIFT_VCS_AGENT_DEBUG_PRINT_ALL",
 		Usage:  "Whether to print all requests and responses to stdout.",
 	}
+
+	flagHTTPDisableResponseCompression = cli.BoolFlag{
+		Name:   "http-disable-response-compression",
+		EnvVar: "SPACELIFT_VCS_AGENT_HTTP_DISABLE_RESPONSE_COMPRESSION",
+		Usage:  "Whether to disable HTTP response compression.",
+	}
+
+	flagHTTPRemoveContentLengthHeader = cli.BoolFlag{
+		Name:   "http-remove-content-length-header",
+		EnvVar: "SPACELIFT_VCS_AGENT_HTTP_REMOVE_CONTENT_LENGTH_HEADER",
+		Usage:  "Whether to remove Content-Length header from HTTP requests (experimental, might be removed in a future release).",
+	}
 )
 
 var app = &cli.App{
@@ -123,6 +135,8 @@ var app = &cli.App{
 		flagTargetBaseEndpoint,
 		flagVCSVendor,
 		flagDebugPrintAll,
+		flagHTTPDisableResponseCompression,
+		flagHTTPRemoveContentLengthHeader,
 	},
 	Action: func(cmdCtx *cli.Context) error {
 		availableVendorsMap := make(map[string]bool)
@@ -204,6 +218,8 @@ var app = &cli.App{
 			agentMetadata,
 			httpClient,
 		)
+		a.HTTPDisableResponseCompression = cmdCtx.Bool(flagHTTPDisableResponseCompression.Name)
+		a.HTTPRemoveHeaderContentLength = cmdCtx.Bool(flagHTTPRemoveContentLengthHeader.Name)
 
 		parallelismSemaphore := make(chan struct{}, cmdCtx.Int(flagParallelism.Name))
 
