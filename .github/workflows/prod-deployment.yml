@@ -93,6 +93,25 @@ jobs:
           --distribution-id ${{ secrets.DISTRIBUTION }}
           --paths "/*"
 
+      - name: Log in to Amazon public ECR
+        if: ${{ startsWith(github.ref, 'refs/heads/production') || github.ref == 'refs/heads/main' }}
+        run: aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
+
+    #  - name: Set up QEMU
+    #    uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and push the image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.ref == 'refs/heads/production' }}
+          tags: |
+            ${{ secrets.PUBLIC_VCS_AGENT_ECR_REPOSITORY_URL }}:latest
+
       - name: Update deployment status (success)
         uses: chrnorm/deployment-status@releases/v1
         if: success()
