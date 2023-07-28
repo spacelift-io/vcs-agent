@@ -24,6 +24,7 @@ jobs:
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
+        if: ${{ github.ref == 'refs/heads/production' }}
         with:
           aws-region: eu-west-1
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
@@ -34,6 +35,7 @@ jobs:
 
       - uses: chrnorm/deployment-action@releases/v1
         name: Create GitHub deployment
+        if: ${{ github.ref == 'refs/heads/production' }}
         id: deployment
         with:
           token: "${{ github.token }}"
@@ -82,19 +84,21 @@ jobs:
           SHORT_SHA: ${{ steps.vars.outputs.sha }}
 
       - name: Upload the VCS Agent binary to downloads.spacelift.io
+        if: ${{ github.ref == 'refs/heads/production' }}
         run: >-
           aws s3 sync
           ${BIN_DIR} s3://${{ secrets.AWS_S3_BUCKET }}/
           --no-progress
 
       - name: Invalidate downloads.spacelift.io cache
+        if: ${{ github.ref == 'refs/heads/production' }}
         run: >-
           aws cloudfront create-invalidation
           --distribution-id ${{ secrets.DISTRIBUTION }}
           --paths "/*"
 
       - name: Log in to Amazon public ECR
-        if: ${{ startsWith(github.ref, 'refs/heads/production') || github.ref == 'refs/heads/main' }}
+        if: ${{ github.ref == 'refs/heads/production' }}
         run: aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
 
     #  - name: Set up QEMU
@@ -114,7 +118,7 @@ jobs:
 
       - name: Update deployment status (success)
         uses: chrnorm/deployment-status@releases/v1
-        if: success()
+        if: success() && ${{ github.ref == 'refs/heads/production' }}
         with:
           token: "${{ github.token }}"
           target_url: https://downloads.spacelift.io/spacelift-vcs-agent
@@ -123,7 +127,7 @@ jobs:
 
       - name: Update deployment status (failure)
         uses: chrnorm/deployment-status@releases/v1
-        if: failure()
+        if: failure() && ${{ github.ref == 'refs/heads/production' }}
         with:
           token: "${{ github.token }}"
           target_url: https://downloads.spacelift.io/spacelift-vcs-agent

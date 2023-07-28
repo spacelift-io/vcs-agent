@@ -1,12 +1,12 @@
 name: Trivy
 
 on:
-  push: {}
-#    branches: ["main"]
-#  pull_request:
-#    branches: ["main"]
-#  schedule:
-#    - cron: "19 7 * * 0"
+  push: 
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  schedule:
+    - cron: "19 7 * * 0"
 
 jobs:
   build:

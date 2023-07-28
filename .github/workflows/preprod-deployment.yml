@@ -1,9 +1,9 @@
 name: Preprod deployment
 
 on:
-  push: {}
-#    branches:
-#      - main
+  push: 
+    branches:
+      - main
 
 jobs:
   preprod-agent-deployment:
