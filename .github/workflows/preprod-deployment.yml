@@ -102,6 +102,7 @@ jobs:
         if: ${{ github.ref == 'refs/heads/main' }}
         run: aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
 
+    # This will be needed in the future for adding multi architecture build support
     #  - name: Set up QEMU
     #    uses: docker/setup-qemu-action@v2
 
@@ -112,7 +113,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: ${{ github.ref == 'refs/heads/main' }}
           tags: |
             ${{ secrets.PREPROD_PUBLIC_VCS_AGENT_ECR_REPOSITORY_URL }}:latest
