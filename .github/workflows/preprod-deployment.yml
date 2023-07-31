@@ -1,7 +1,7 @@
 name: Preprod deployment
 
 on:
-  push:
+  push: 
     branches:
       - main
 
@@ -25,6 +25,7 @@ jobs:
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
+        if: ${{ github.ref == 'refs/heads/main' }}
         with:
           aws-region: eu-west-1
           role-to-assume: ${{ secrets.PREPROD_AWS_ROLE_TO_ASSUME }}
@@ -35,6 +36,7 @@ jobs:
 
       - uses: chrnorm/deployment-action@releases/v1
         name: Create GitHub deployment
+        if: ${{ github.ref == 'refs/heads/main' }}
         id: deployment
         with:
           token: "${{ github.token }}"
@@ -83,20 +85,42 @@ jobs:
           SHORT_SHA: ${{ steps.vars.outputs.sha }}
 
       - name: Upload the VCS Agent binary to downloads.spacelift.dev
+        if: ${{ github.ref == 'refs/heads/main' }}
         run: >-
           aws s3 sync
           ${BIN_DIR} s3://${{ secrets.PREPROD_AWS_S3_BUCKET }}/
           --no-progress
 
       - name: Invalidate downloads.spacelift.dev cache
+        if: ${{ github.ref == 'refs/heads/main' }}
         run: >-
           aws cloudfront create-invalidation
           --distribution-id ${{ secrets.PREPROD_DISTRIBUTION }}
           --paths "/*"
 
+      - name: Log in to Amazon public ECR
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
+
+    # This will be needed in the future for adding multi architecture build support
+    #  - name: Set up QEMU
+    #    uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and push the image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          platforms: linux/amd64
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: |
+            ${{ secrets.PREPROD_PUBLIC_VCS_AGENT_ECR_REPOSITORY_URL }}:latest
+
       - name: Update deployment status (success)
-        uses: chrnorm/deployment-status@releases/v1
-        if: success()
+        uses: chrnorm/deployment-status@releases/v1        
+        if: success() && ${{ github.ref == 'refs/heads/main' }}
         with:
           token: "${{ github.token }}"
           target_url: https://downloads.spacelift.dev/spacelift-vcs-agent
@@ -105,7 +129,7 @@ jobs:
 
       - name: Update deployment status (failure)
         uses: chrnorm/deployment-status@releases/v1
-        if: failure()
+        if: failure() && ${{ github.ref == 'refs/heads/main' }}
         with:
           token: "${{ github.token }}"
           target_url: https://downloads.spacelift.dev/spacelift-vcs-agent

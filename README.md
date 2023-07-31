@@ -23,3 +23,16 @@ The VCS Agent requires the following environment variables to be configured to w
 
 In addition, when running locally, you may want to set `SPACELIFT_VCS_AGENT_DIAL_INSECURE=true`
 to enable the VCS Agent to communicate with a Gateway instance that isn't using TLS.
+
+### Running via Docker
+
+Use the following command to run the VCS Agent via Docker:
+
+```shell
+docker run -it --rm -e "SPACELIFT_VCS_AGENT_POOL_TOKEN=<VCS Token>" \
+  -e "SPACELIFT_VCS_AGENT_TARGET_BASE_ENDPOINT=<https://github.mycompany.com>" \
+  -e "SPACELIFT_VCS_AGENT_VENDOR=<bitbucket_datacenter>" \
+  public.ecr.aws/spacelift/vcs-agent
+```
+
+To use this example, make sure to update the environment variables according to your environment as explained in the table above.
