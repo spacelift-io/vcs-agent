@@ -23,14 +23,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@master
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        if: ${{ github.ref == 'refs/heads/main' }}
-        with:
-          aws-region: eu-west-1
-          role-to-assume: ${{ secrets.PREPROD_AWS_ROLE_TO_ASSUME }}
-          role-duration-seconds: 900
-
       - name: Mark source directory as safe. # This is some duct tape over the git version in the Go image complaining about this since one of the 1.19.x versions. Feel free to remove once it doesn't break the build anymore. See https://github.com/actions/runner/issues/2033 and https://github.com/actions/checkout/issues/760#issuecomment-1097797031
         run: git config --global --add safe.directory $GITHUB_WORKSPACE
 
@@ -83,6 +75,41 @@ jobs:
         run: ./scripts/verify.sh $BIN_DIR $BASE_NAME
         env:
           SHORT_SHA: ${{ steps.vars.outputs.sha }}
+
+      - name: Upload the VCS Agent binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: vcs-agent-binary
+          path: build/
+          retention-days: 1
+
+  publish-preprod-agent-deployment:
+    name: Upload VCS agent binary and container image
+    needs: ["preprod-agent-deployment"]
+    runs-on: ubuntu-latest
+
+    env:
+      BIN_DIR: build
+    permissions:
+      id-token: write
+      contents: read
+      deployments: write
+
+    steps:
+      - name: Download the VCS Agent binary
+        uses: actions/download-artifact@v3
+        with:
+          name: vcs-agent-binary
+          path: ./build
+          retention-days: 1
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        if: ${{ github.ref == 'refs/heads/main' }}
+        with:
+          aws-region: eu-west-1
+          role-to-assume: ${{ secrets.PREPROD_AWS_ROLE_TO_ASSUME }}
+          role-duration-seconds: 900
 
       - name: Upload the VCS Agent binary to downloads.spacelift.dev
         if: ${{ github.ref == 'refs/heads/main' }}
