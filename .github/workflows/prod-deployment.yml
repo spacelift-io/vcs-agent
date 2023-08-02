@@ -107,7 +107,7 @@ jobs:
         if: ${{ github.ref == 'refs/heads/main' }}
         with:
           aws-region: eu-west-1
-          role-to-assume: ${{ secrets.PREPROD_AWS_ROLE_TO_ASSUME }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           role-duration-seconds: 900
 
       - name: Upload the VCS Agent binary to downloads.spacelift.io
