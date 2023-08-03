@@ -95,6 +95,9 @@ jobs:
       deployments: write
 
     steps:
+      - name: Check out repository code
+        uses: actions/checkout@master
+      
       - name: Download the VCS Agent binary
         uses: actions/download-artifact@v3
         with:
