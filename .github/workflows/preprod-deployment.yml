@@ -9,8 +9,9 @@ jobs:
   preprod-agent-deployment:
     name: Build and upload agent
     runs-on: ubuntu-latest
+    outputs:
+      deployment_id: ${{ steps.deployment.outputs.deployment_id }}
     container: golang:1.20
-
     env:
       BASE_NAME: spacelift-vcs-agent
       BIN_DIR: build
@@ -155,7 +156,7 @@ jobs:
           token: "${{ github.token }}"
           target_url: https://downloads.spacelift.dev/spacelift-vcs-agent
           state: "success"
-          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+          deployment_id: ${{ needs.preprod-agent-deployment.outputs.deployment_id }}
 
       - name: Update deployment status (failure)
         uses: chrnorm/deployment-status@releases/v1
@@ -164,4 +165,4 @@ jobs:
           token: "${{ github.token }}"
           target_url: https://downloads.spacelift.dev/spacelift-vcs-agent
           state: "failure"
-          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+          deployment_id: ${{ needs.preprod-agent-deployment.outputs.deployment_id }}
