@@ -89,7 +89,7 @@ jobs:
         if: failure() && ${{ github.ref == 'refs/heads/production' }}
         with:
           token: "${{ github.token }}"
-          target_url: https://downloads.spacelift.dev/spacelift-vcs-agent
+          target_url: https://downloads.spacelift.io/spacelift-vcs-agent
           state: "failure"
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
 
