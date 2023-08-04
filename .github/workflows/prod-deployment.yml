@@ -84,6 +84,15 @@ jobs:
           path: build/
           retention-days: 1
 
+      - name: Update deployment status (failure)
+        uses: chrnorm/deployment-status@releases/v1
+        if: failure() && ${{ github.ref == 'refs/heads/production' }}
+        with:
+          token: "${{ github.token }}"
+          target_url: https://downloads.spacelift.dev/spacelift-vcs-agent
+          state: "failure"
+          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+
   publish-prod-agent-deployment:
     name: Upload VCS agent binary and container image
     needs: ["prod-agent-deployment"]
