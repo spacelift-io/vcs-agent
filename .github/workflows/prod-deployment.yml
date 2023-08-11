@@ -9,8 +9,6 @@ jobs:
   prod-agent-deployment:
     name: Build and upload agent
     runs-on: ubuntu-latest
-    outputs:
-      deployment_id: ${{ steps.deployment.outputs.deployment_id }}
     container: golang:1.20
     env:
       BASE_NAME: spacelift-vcs-agent
@@ -24,12 +22,18 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@master
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: eu-west-1
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-duration-seconds: 900
+
       - name: Mark source directory as safe. # This is some duct tape over the git version in the Go image complaining about this since one of the 1.19.x versions. Feel free to remove once it doesn't break the build anymore. See https://github.com/actions/runner/issues/2033 and https://github.com/actions/checkout/issues/760#issuecomment-1097797031
         run: git config --global --add safe.directory $GITHUB_WORKSPACE
 
       - uses: chrnorm/deployment-action@releases/v1
         name: Create GitHub deployment
-        if: ${{ github.ref == 'refs/heads/production' }}
         id: deployment
         with:
           token: "${{ github.token }}"
@@ -77,101 +81,32 @@ jobs:
         env:
           SHORT_SHA: ${{ steps.vars.outputs.sha }}
 
-      - name: Upload the VCS Agent binary
-        uses: actions/upload-artifact@v3
-        with:
-          name: vcs-agent-binary
-          path: build/
-          retention-days: 1
-
-      - name: Update deployment status (failure)
-        uses: chrnorm/deployment-status@releases/v1
-        if: failure() && ${{ github.ref == 'refs/heads/production' }}
-        with:
-          token: "${{ github.token }}"
-          target_url: https://downloads.spacelift.io/spacelift-vcs-agent
-          state: "failure"
-          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
-
-  publish-prod-agent-deployment:
-    name: Upload VCS agent binary and container image
-    needs: ["prod-agent-deployment"]
-    runs-on: ubuntu-latest
-
-    env:
-      BIN_DIR: build
-    permissions:
-      id-token: write
-      contents: read
-      deployments: write
-
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@master
-      
-      - name: Download the VCS Agent binary
-        uses: actions/download-artifact@v3
-        with:
-          name: vcs-agent-binary
-          path: ./build
-          retention-days: 1
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        if: ${{ github.ref == 'refs/heads/main' }}
-        with:
-          aws-region: eu-west-1
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-          role-duration-seconds: 900
-
       - name: Upload the VCS Agent binary to downloads.spacelift.io
-        if: ${{ github.ref == 'refs/heads/production' }}
         run: >-
           aws s3 sync
           ${BIN_DIR} s3://${{ secrets.AWS_S3_BUCKET }}/
           --no-progress
 
       - name: Invalidate downloads.spacelift.io cache
-        if: ${{ github.ref == 'refs/heads/production' }}
         run: >-
           aws cloudfront create-invalidation
           --distribution-id ${{ secrets.DISTRIBUTION }}
           --paths "/*"
 
-      - name: Log in to Amazon public ECR
-        if: ${{ github.ref == 'refs/heads/production' }}
-        run: aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
-
-    # This will be needed in the future for adding multi architecture build support
-    #  - name: Set up QEMU
-    #    uses: docker/setup-qemu-action@v2
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Build and push the image
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          platforms: linux/amd64
-          push: ${{ github.ref == 'refs/heads/production' }}
-          tags: |
-            ${{ secrets.PUBLIC_VCS_AGENT_ECR_REPOSITORY_URL }}:latest
-
       - name: Update deployment status (success)
         uses: chrnorm/deployment-status@releases/v1
-        if: success() && ${{ github.ref == 'refs/heads/production' }}
+        if: success()
         with:
           token: "${{ github.token }}"
           target_url: https://downloads.spacelift.io/spacelift-vcs-agent
           state: "success"
-          deployment_id: ${{ needs.prod-agent-deployment.outputs.deployment_id }}
+          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
 
       - name: Update deployment status (failure)
         uses: chrnorm/deployment-status@releases/v1
-        if: failure() && ${{ github.ref == 'refs/heads/production' }}
+        if: failure()
         with:
           token: "${{ github.token }}"
           target_url: https://downloads.spacelift.io/spacelift-vcs-agent
           state: "failure"
-          deployment_id: ${{ needs.prod-agent-deployment.outputs.deployment_id }}
+          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
