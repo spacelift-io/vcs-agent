@@ -10,7 +10,7 @@ jobs:
 
     steps:
       - name: Check out repository code
-        uses: actions/checkout@master
+        uses: actions/checkout@v4
 
       - name: Test the code
         run: go test -race ./...

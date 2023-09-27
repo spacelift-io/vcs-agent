@@ -8,7 +8,7 @@ jobs:
   create-pr:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Set PR template
         id: template
@@ -18,7 +18,7 @@ jobs:
           trim: false
 
       - name: Create Pull Request
-        uses: vsoch/pull-request-action@1.0.13
+        uses: vsoch/pull-request-action@1.0.24
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PASS_IF_EXISTS: true
