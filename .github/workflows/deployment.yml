@@ -1,0 +1,33 @@
+name: Publish
+
+on: [push]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    name: 🚀 Build and publish VCS Agent
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+      packages: write
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Publish binary & Docker image
+        uses: ./.github/workflows/publish
+        with:
+          aws_role_to_assume: ${{ startsWith(github.ref, 'refs/tags/v') && secrets.AWS_ROLE_TO_ASSUME || secrets.PREPROD_AWS_ROLE_TO_ASSUME }}
+          ecr_repository_url: ${{ startsWith(github.ref, 'refs/tags/v') && secrets.PUBLIC_VCS_AGENT_ECR_REPOSITORY_URL || secrets.PREPROD_PUBLIC_VCS_AGENT_ECR_REPOSITORY_URL }}
+          aws_bucket: ${{ startsWith(github.ref, 'refs/tags/v') && secrets.AWS_S3_BUCKET || secrets.PREPROD_AWS_S3_BUCKET }}
+          cloudfront_distribution: ${{ startsWith(github.ref, 'refs/tags/v') && secrets.DISTRIBUTION || secrets.PREPROD_DISTRIBUTION }}
+          bugsnag_api_key: ${{ startsWith(github.ref, 'refs/tags/v') && secrets.BUGSNAG_API_KEY || secrets.PREPROD_BUGSNAG_API_KEY }}
+          gpg_key_id: ${{ secrets.GPG_KEY_ID }}
+          gpg_base64_key: ${{ secrets.GPG_KEY_BASE64 }}
+          gpg_passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}

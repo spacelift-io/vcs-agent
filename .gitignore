@@ -20,3 +20,5 @@
 
 # Binary
 cmd/spacelift-vcs-agent/spacelift-vcs-agent
+
+dist/

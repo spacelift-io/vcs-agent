@@ -1,0 +1,36 @@
+name: Build
+
+on: { push: { branches-ignore: [main, production] } }
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  build-binary:
+    name: 👷 Build binary
+    runs-on: ubuntu-latest
+    container: golang:1.20
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Mark source directory as safe.
+        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: "linux/amd64,linux/arm64"
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          args: release --snapshot
+        env:
+          BUGSNAG_API_KEY: "REAL_KEY_NOT_NEEDED_HERE"
+          REPOSITORY_URL: "ghcr.io/spacelift-io/vcs-agent"

@@ -1,0 +1,61 @@
+project_name: spacelift-vcs-agent
+
+builds:
+  - main: ./cmd/spacelift-vcs-agent
+    binary: spacelift-vcs-agent
+    env: [CGO_ENABLED=0]
+    goos: [windows, linux, darwin]
+    goarch: [amd64, arm64]
+    flags: [-trimpath]
+    tags: [netgo]
+    ldflags:
+      - "-s -w -extldflags '-static' -X main.VERSION={{ .ShortCommit }} -X main.BugsnagAPIKey={{ .Env.BUGSNAG_API_KEY }}"
+
+changelog:
+  use: github-native
+
+archives:
+  - format: zip
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+dockers:
+  - use: buildx
+    goarch: amd64
+    build_flag_templates:
+     - "--platform=linux/amd64"
+     - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+     - "--label=org.opencontainers.image.vendor=Spacelift"
+     - "--label=org.opencontainers.image.description=Spacelift VCS Agent version {{ .Version }}"
+     - "--label=org.opencontainers.image.url=https://github.com/spacelift-io/vcs-agent"
+     - "--label=org.opencontainers.image.documentation=https://docs.spacelift.io/concepts/vcs-agent-pools"
+     - "--label=org.opencontainers.image.source=https://github.com/spacelift-io/vcs-agent"
+     - "--label=org.opencontainers.image.version={{ .Version }}"
+     - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+     - "--label=org.opencontainers.image.created={{ time \"2006-01-02T15:04:05Z07:00\" }}"
+    image_templates: ["{{ .Env.REPOSITORY_URL }}:{{ .Version }}-amd64"]
+
+  - use: buildx
+    goarch: arm64
+    build_flag_templates:
+     - "--platform=linux/arm64"
+     - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+     - "--label=org.opencontainers.image.vendor=Spacelift"
+     - "--label=org.opencontainers.image.description=Spacelift VCS Agent version {{ .Version }}"
+     - "--label=org.opencontainers.image.url=https://github.com/spacelift-io/vcs-agent"
+     - "--label=org.opencontainers.image.documentation=https://docs.spacelift.io/concepts/vcs-agent-pools"
+     - "--label=org.opencontainers.image.source=https://github.com/spacelift-io/vcs-agent"
+     - "--label=org.opencontainers.image.version={{ .Version }}"
+     - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+     - "--label=org.opencontainers.image.created={{ time \"2006-01-02T15:04:05Z07:00\" }}"
+    image_templates: ["{{ .Env.REPOSITORY_URL }}:{{ .Version }}-arm64"]
+
+docker_manifests:
+  - name_template: "{{ .Env.REPOSITORY_URL }}:{{ .Version }}"
+    image_templates:
+    - "{{ .Env.REPOSITORY_URL }}:{{ .Version }}-amd64"
+    - "{{ .Env.REPOSITORY_URL }}:{{ .Version }}-arm64"
+
+  - name_template: "{{ .Env.REPOSITORY_URL }}:latest"
+    image_templates:
+    - "{{ .Env.REPOSITORY_URL }}:{{ .Version }}-amd64"
+    - "{{ .Env.REPOSITORY_URL }}:{{ .Version }}-arm64"
