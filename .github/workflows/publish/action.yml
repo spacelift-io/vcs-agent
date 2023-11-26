@@ -33,9 +33,14 @@ inputs:
 runs:
   using: composite
   steps:      
-    - name: Setup Go
-      uses: actions/setup-go@v4
-      with: { go-version: "1.20" }
+    - name: Run GoReleaser
+      uses: ./.github/workflows/goreleaser
+      with:
+        snapshot: ${{ github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/') }}
+        bugsnag_api_key: ${{ inputs.bugsnag_api_key }}
+        repository_url: ${{ inputs.ecr_repository_url }}
+        github_token: ${{ inputs.github_token }}
+        disable_github_release: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
@@ -49,23 +54,6 @@ runs:
       if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') }}
       shell: bash
       run: aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
-    
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-    
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-      with:
-        platforms: linux/amd64,linux/arm64
-
-    - name: Run GoReleaser
-      uses: goreleaser/goreleaser-action@v5
-      with:
-        args: release --snapshot=${{ !startsWith(github.ref, 'refs/tags/') }}
-      env:
-        BUGSNAG_API_KEY: ${{ inputs.bugsnag_api_key }}
-        GITHUB_TOKEN: ${{ inputs.github_token }}
-        REPOSITORY_URL: ${{ inputs.ecr_repository_url }}
 
     - name: Import the PGP key
       shell: bash

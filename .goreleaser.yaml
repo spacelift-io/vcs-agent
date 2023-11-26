@@ -2,7 +2,6 @@ project_name: spacelift-vcs-agent
 
 builds:
   - main: ./cmd/spacelift-vcs-agent
-    binary: spacelift-vcs-agent
     env: [CGO_ENABLED=0]
     goos: [windows, linux, darwin]
     goarch: [amd64, arm64]
@@ -13,6 +12,26 @@ builds:
 
 changelog:
   use: github-native
+
+release:
+  disable: "{{ .Env.DISABLE_GITHUB_RELEASE }}"
+  header: |
+    ## Artifacts
+
+    ### Docker images
+
+    The following multi-arch Docker images have been published:
+
+    - `{{ .Env.REPOSITORY_URL }}:latest`
+    - `{{ .Env.REPOSITORY_URL }}:{{ .Version }}`
+
+    ### Binaries
+
+    The latest binaries are available in this release page, as well as on Spacelift's CDN:
+    | URL                                                          | Architecture  |
+    | ------------------------------------------------------------ | ------------- |
+    | <https://downloads.spacelift.io/spacelift-vcs-agent-x86_64>  | Linux (amd64) |
+    | <https://downloads.spacelift.io/spacelift-vcs-agent-aarch64> | Linux (arm64) |
 
 archives:
   - format: zip

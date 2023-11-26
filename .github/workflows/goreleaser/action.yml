@@ -1,0 +1,50 @@
+name: Run GoReleaser
+description: Sets up the proper Go version, Docker Buildx, QEMU, and runs GoReleaser
+
+inputs:
+  snapshot:
+    description: Whether to create a snapshot release or real one
+    default: "true"
+  bugsnag_api_key:
+    description: The Bugsnag API key
+    default: "NOT_SET"
+  repository_url:
+    description: The repository URL that GoReleaser will use to create the Docker images
+    required: true
+  github_token:
+    description: The GitHub token
+    required: false
+  disable_github_release:
+    description: Whether to disable publishing the GitHub release
+    default: "true"
+
+runs:
+    using: composite
+    steps:      
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with: { go-version: "1.20" }
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: "linux/amd64,linux/arm64"
+
+      - name: Run GoReleaser
+        id: goreleaser
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          args: release --snapshot=${{ inputs.snapshot }}
+        env:
+          BUGSNAG_API_KEY: ${{ inputs.bugsnag_api_key }}
+          REPOSITORY_URL: ${{ inputs.repository_url }}
+          GITHUB_TOKEN: ${{ inputs.github_token }}
+          DISABLE_GITHUB_RELEASE: ${{ inputs.disable_github_release }}
+
+outputs:
+  metadata:
+    description: The release metadata of GoReleaser
+    value: ${{ steps.goreleaser.outputs.metadata }}
