@@ -33,6 +33,16 @@ runs:
         with:
           platforms: "linux/amd64,linux/arm64"
 
+      - name: Fake tag for Goreleaser
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        shell: bash
+        run: |
+          # GoReleaser requires a tag to be present, so we
+          # create a fake one.
+          git config --global user.email "ci@spacelift.io"
+          git config --global user.name "Spacelift CI"
+          git tag -a v0.0.0 -m "Fake tag for Goreleaser"
+
       - name: Run GoReleaser
         id: goreleaser
         uses: goreleaser/goreleaser-action@v5
