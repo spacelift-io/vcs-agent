@@ -8,80 +8,49 @@ on:
   schedule:
     - cron: "19 7 * * 0"
 
-jobs:
-  build:
-    name: Build
-    runs-on: ubuntu-latest
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 
-    env:
-      BASE_NAME: spacelift-vcs-agent
-      BIN_DIR: build
+jobs:
+  trivy:
+    name: 🔐 Trivy
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
 
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with: { go-version: 1.18 }
-
-      - name: parse short SHA
-        id: vars
-        run: |
-          echo ::set-output name=sha::$(git rev-parse --short=8 ${{ github.sha }})
-
-      - name: Build Spacelift VCS Agent
-        run: go build -a -tags netgo -ldflags "-s -w -extldflags '-static' -X main.VERSION=$SHORT_SHA -X main.BugsnagAPIKey=$BUGSNAG_API_KEY" -trimpath -o $BIN_DIR/$BASE_NAME ./cmd/spacelift-vcs-agent
-        env:
-          BUGSNAG_API_KEY: ${{ secrets.BUGSNAG_API_KEY }}
-          CGO_ENABLED: 0
-          SHORT_SHA: ${{ steps.vars.outputs.sha }}
-
-      - name: Archive artifacts for use in Docker build
-        uses: actions/upload-artifact@v3
+      - name: Run GoReleaser
+        uses: ./.github/workflows/goreleaser
+        id: goreleaser
         with:
-          name: build
-          path: |
-            build
+          repository_url: "ghcr.io/spacelift-io/vcs-agent"
 
-  analyze:
-    name: Analyze with Trivy
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: build
-          path: build
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build and push the image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: false
-          load: true
-          tags: "spacelift-vcs-agent:${{ github.sha }}"
-
-      - name: Run Trivy vulnerability scanner
+      - name: Run Trivy vulnerability scanner (amd64)
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: "spacelift-vcs-agent:${{ github.sha }}"
-          format: "template"
-          template: "@/contrib/sarif.tpl"
-          output: "trivy-results.sarif"
+          image-ref: "ghcr.io/spacelift-io/vcs-agent:${{ fromJson(steps.goreleaser.outputs.metadata).version }}-amd64"
+          format: "sarif"
+          output: "trivy-results-amd64.sarif"
           severity: "CRITICAL,HIGH"
 
-      - name: Upload Trivy scan results to GitHub Security tab
+      - name: Run Trivy vulnerability scanner (arm64)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "ghcr.io/spacelift-io/vcs-agent:${{ fromJson(steps.goreleaser.outputs.metadata).version }}-arm64"
+          format: "sarif"
+          output: "trivy-results-arm64.sarif"
+          severity: "CRITICAL,HIGH"
+
+      - name: Upload Trivy scan results to GitHub Security tab (amd64)
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: "trivy-results.sarif"
-          category: "Trivy"
+          sarif_file: "trivy-results-amd64.sarif"
+          category: "Trivy (amd64)"
+
+      - name: Upload Trivy scan results to GitHub Security tab (arm64)
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: "trivy-results-arm64.sarif"
+          category: "Trivy (arm64)"

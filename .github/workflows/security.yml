@@ -5,9 +5,13 @@ on:
   schedule:
     - cron: "19 7 * * 0"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   codeql:
-    name: CodeQL
+    name: 👮‍♀️ CodeQL
     runs-on: ubuntu-latest
 
     steps:
@@ -25,9 +29,8 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v1
 
-
   gosec:
-    name: GoSec
+    name: 👮‍♀️ GoSec
     runs-on: ubuntu-latest
     env:
       GO111MODULE: on

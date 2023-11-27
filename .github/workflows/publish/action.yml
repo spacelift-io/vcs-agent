@@ -1,0 +1,115 @@
+name: Publish VCS Agent
+description: Builds and pushes the binaries to S3 and to the public ECR.
+
+inputs:
+  aws_role_to_assume:
+    description: The AWS role to assume. Used to authenticate with ECR.
+    required: true
+  ecr_repository_url:
+    description: The ECR repository URL. Used to push the Docker image.
+    required: true
+  aws_bucket:
+    description: The AWS bucket. Used to upload the binaries.
+    required: true
+  cloudfront_distribution:
+    description: The CloudFront distribution. Used to invalidate the cache.
+    required: true
+  bugsnag_api_key:
+    description: The Bugsnag API key. Burnt into the binary.
+    required: true
+  gpg_key_id:
+    description: The GPG key ID. Used to sign the binaries.
+    required: true
+  gpg_base64_key:
+    description: The GPG key. Used to sign the binaries.
+    required: true
+  gpg_passphrase:
+    description: The GPG passphrase. Used to sign the binaries.
+    required: true
+  github_token:
+    description: The GitHub token. Used to authenticate with GitHub.
+    required: true
+
+runs:
+  using: composite
+  steps:      
+    - name: Run GoReleaser
+      uses: ./.github/workflows/goreleaser
+      with:
+        snapshot: ${{ github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/') }}
+        bugsnag_api_key: ${{ inputs.bugsnag_api_key }}
+        repository_url: ${{ inputs.ecr_repository_url }}
+        github_token: ${{ inputs.github_token }}
+        disable_github_release: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') }}
+      with:
+        aws-region: eu-west-1
+        role-to-assume: ${{ inputs.aws_role_to_assume }}
+        role-duration-seconds: 900
+
+    - name: Log in to Amazon public ECR
+      if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') }}
+      shell: bash
+      run: aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
+
+    - name: Import the PGP key
+      shell: bash
+      run: |
+        echo ${GPG_KEY_BASE64} | base64 -d > spacelift.gpg
+        gpg --import \
+          --passphrase=$GPG_PASSPHRASE \
+          --pinentry-mode=loopback \
+          spacelift.gpg
+        rm spacelift.gpg
+      env:
+        GPG_KEY_BASE64: ${{ inputs.gpg_base64_key }}
+        GPG_PASSPHRASE: ${{ inputs.gpg_passphrase }}
+    
+    - name: Sign Spacelift VCS Agent Binary
+      shell: bash
+      run: |
+        chmod 755 ./dist/spacelift-vcs-agent_linux_amd64_v1/spacelift-vcs-agent
+        ./scripts/sign.sh ./dist/spacelift-vcs-agent_linux_amd64_v1 spacelift-vcs-agent
+        ./scripts/verify.sh ./dist/spacelift-vcs-agent_linux_amd64_v1 spacelift-vcs-agent
+    
+        chmod 755 ./dist/spacelift-vcs-agent_linux_arm64/spacelift-vcs-agent
+        ./scripts/sign.sh ./dist/spacelift-vcs-agent_linux_arm64 spacelift-vcs-agent
+        ./scripts/verify.sh ./dist/spacelift-vcs-agent_linux_arm64 spacelift-vcs-agent
+      env:
+        GPG_KEY_ID: ${{ inputs.gpg_key_id }}
+        GPG_PASSPHRASE: ${{ inputs.gpg_passphrase }}
+    
+    - name: Put the files into the right place
+      shell: bash
+      run: |
+        mkdir -p build
+        cp dist/spacelift-vcs-agent_linux_amd64_v1/spacelift-vcs-agent build/spacelift-vcs-agent
+        cp dist/spacelift-vcs-agent_linux_amd64_v1/spacelift-vcs-agent_SHA256SUMS build/spacelift-vcs-agent_SHA256SUMS
+        cp dist/spacelift-vcs-agent_linux_amd64_v1/spacelift-vcs-agent_SHA256SUMS.sig build/spacelift-vcs-agent_SHA256SUMS.sig
+    
+        cp dist/spacelift-vcs-agent_linux_amd64_v1/spacelift-vcs-agent build/spacelift-vcs-agent-x86_64
+        cp dist/spacelift-vcs-agent_linux_amd64_v1/spacelift-vcs-agent_SHA256SUMS build/spacelift-vcs-agent-x86_64_SHA256SUMS
+        cp dist/spacelift-vcs-agent_linux_amd64_v1/spacelift-vcs-agent_SHA256SUMS.sig build/spacelift-vcs-agent-x86_64_SHA256SUMS.sig
+    
+        cp dist/spacelift-vcs-agent_linux_arm64/spacelift-vcs-agent build/spacelift-vcs-agent-aarch64
+        cp dist/spacelift-vcs-agent_linux_arm64/spacelift-vcs-agent_SHA256SUMS build/spacelift-vcs-agent-aarch64_SHA256SUMS
+        cp dist/spacelift-vcs-agent_linux_arm64/spacelift-vcs-agent_SHA256SUMS.sig build/spacelift-vcs-agent-aarch64_SHA256SUMS.sig
+    
+        # For visibility, here's the list of files we're uploading:
+        ls -l build
+    
+    - name: Upload the VCS Agent binaries to downloads.spacelift.[dev|io]
+      if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') }}
+      shell: bash
+      run: aws s3 sync build/ s3://${{ inputs.aws_bucket }}
+    
+    - name: Invalidate downloads.spacelift.[dev|io] cache
+      if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') }}
+      shell: bash
+      run: >-
+        aws cloudfront create-invalidation
+        --distribution-id ${{ inputs.cloudfront_distribution }}
+        --paths "/*"

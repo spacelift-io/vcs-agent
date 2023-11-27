@@ -2,9 +2,13 @@ name: Unit testing
 
 on: { push: { branches-ignore: [main, production] } }
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   unit-testing:
-    name: Test the code
+    name: 🧪 Test the code
     runs-on: ubuntu-latest
     container: golang:1.20
 
