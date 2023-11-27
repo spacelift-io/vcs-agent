@@ -17,7 +17,7 @@ require (
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.7.0
 	github.com/urfave/cli v1.22.5
-	golang.org/x/net v0.7.0 // indirect
+	golang.org/x/net v0.17.0 // indirect
 	google.golang.org/genproto v0.0.0-20211015135405-485ec31e706e // indirect
 	google.golang.org/grpc v1.42.0
 	google.golang.org/protobuf v1.27.1
