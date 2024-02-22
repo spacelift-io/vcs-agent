@@ -14,6 +14,7 @@ import (
 	"github.com/spacelift-io/spcontext"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	insecurePkg "google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 
 	"github.com/spacelift-io/vcs-agent/privatevcs"
@@ -55,7 +56,7 @@ func (a *Agent) Run(ctx *spcontext.Context) (outErr error) {
 
 	var opts []grpc.DialOption
 	if insecure {
-		opts = append(opts, grpc.WithInsecure())
+		opts = append(opts, grpc.WithTransportCredentials(insecurePkg.NewCredentials()))
 	} else {
 		opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{MinVersion: tls.VersionTLS12})))
 	}

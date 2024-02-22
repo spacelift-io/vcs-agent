@@ -26,7 +26,7 @@ func TestHTTPClient_Do(t *testing.T) {
 		}
 
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Cannot compute"))
+		_, _ = w.Write([]byte("Cannot compute"))
 	}))
 	defer r.Close()
 

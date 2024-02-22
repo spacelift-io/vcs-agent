@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/bugsnag/bugsnag-go"
-	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log"
 	"github.com/spacelift-io/spcontext"
 	"github.com/urfave/cli"
 
@@ -241,7 +241,7 @@ var app = &cli.App{
 					defer wg.Done()
 					defer func() {
 						// Recover error which has already been sent by bugsnag below.
-						recover()
+						_ = recover()
 					}()
 					defer ctx.Notifier.AutoNotify(ctx)
 

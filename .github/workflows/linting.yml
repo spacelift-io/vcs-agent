@@ -10,11 +10,14 @@ jobs:
   linting:
     name: 🤓 Lint the code
     runs-on: ubuntu-latest
-    container: golang:1.20
 
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with: { go-version-file: go.mod }
 
       - name: Check formatting using gofmt
         run: gofmt -s -l -d
@@ -22,8 +25,9 @@ jobs:
       - name: Check for suspicious constructs using "go vet"
         run: go vet ./...
 
-      - name: Lint the code using "golint"
-        run: GO111MODULE=off go get -u golang.org/x/lint/golint && go list ./... | grep -v /vendor/ | xargs -L1 golint -set_exit_status
-
-      - name: Run staticcheck
-        run: GO111MODULE=off go get -u honnef.co/go/tools/cmd/staticcheck && staticcheck ./...
+      - name: Run golangci-lint
+        uses: reviewdog/action-golangci-lint@v2
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          reporter: github-check
