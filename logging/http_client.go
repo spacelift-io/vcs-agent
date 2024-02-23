@@ -21,7 +21,7 @@ type HTTPClient struct {
 // Do performs an HTTP request and logs the request and response.
 func (cli *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 	buffer := &bytes.Buffer{}
-	defer func() { cli.Out.Write(buffer.Bytes()) }()
+	defer func() { _, _ = cli.Out.Write(buffer.Bytes()) }()
 
 	interpretControlSequences := func(text string) string {
 		text = strings.ReplaceAll(text, `\n`, "\n")
@@ -30,7 +30,7 @@ func (cli *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 	}
 
 	reqWriter := text.NewIndentWriter(buffer, []byte("> "))
-	reqWriter.Write([]byte(req.Method + " " + req.URL.String() + "\n"))
+	_, _ = reqWriter.Write([]byte(req.Method + " " + req.URL.String() + "\n"))
 	printHeaders(reqWriter, req.Header)
 
 	if req.Body != nil {

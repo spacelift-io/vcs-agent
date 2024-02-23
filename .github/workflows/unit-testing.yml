@@ -10,7 +10,7 @@ jobs:
   unit-testing:
     name: 🧪 Test the code
     runs-on: ubuntu-latest
-    container: golang:1.20
+    container: golang:1.21
 
     steps:
       - name: Check out repository code
