@@ -5,7 +5,6 @@ go 1.21
 require (
 	github.com/bugsnag/bugsnag-go v2.2.1+incompatible
 	github.com/franela/goblin v0.0.0-20211003143422-0a4f594942bf
-	github.com/go-kit/kit v0.13.0
 	github.com/go-kit/log v0.2.1
 	github.com/kr/text v0.2.0
 	github.com/onsi/gomega v1.31.1
@@ -14,7 +13,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/urfave/cli v1.22.14
 	google.golang.org/grpc v1.62.0
-	google.golang.org/protobuf v1.32.0
+	google.golang.org/protobuf v1.33.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
