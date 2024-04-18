@@ -10,11 +10,14 @@ jobs:
   unit-testing:
     name: 🧪 Test the code
     runs-on: ubuntu-latest
-    container: golang:1.21
 
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with: { go-version-file: go.mod }
 
       - name: Test the code
         run: go test -race ./...
