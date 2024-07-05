@@ -1,4 +1,5 @@
 project_name: spacelift-vcs-agent
+version: 2
 
 builds:
   - main: ./cmd/spacelift-vcs-agent
