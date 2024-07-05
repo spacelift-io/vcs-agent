@@ -61,19 +61,19 @@ func (a *Agent) Run(ctx *spcontext.Context) (outErr error) {
 		opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{MinVersion: tls.VersionTLS12})))
 	}
 
-	conn, err := grpc.Dial(a.poolConfig.Host, opts...)
+	client, err := grpc.NewClient(a.poolConfig.Host, opts...)
 	if err != nil {
 		return errors.Wrap(err, "couldn't dial gateway")
 	}
 	defer func() {
-		if err := conn.Close(); err != nil {
+		if err := client.Close(); err != nil {
 			if outErr == nil {
 				outErr = errors.Wrap(err, "couldn't close connection")
 			}
 		}
 	}()
 
-	cli := privatevcs.NewGatewayClient(conn)
+	cli := privatevcs.NewGatewayClient(client)
 
 	metadataJSON, err := json.Marshal(a.metadata)
 	if err != nil {
