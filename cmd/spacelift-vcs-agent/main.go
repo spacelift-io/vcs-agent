@@ -124,6 +124,7 @@ var app = &cli.App{
 	Flags: []cli.Flag{
 		flagAllowedProjects,
 		flagBugsnagAPIKey,
+		flagBugsnagDisable,
 		flagParallelism,
 		flagPoolToken,
 		flagTargetBaseEndpoint,
