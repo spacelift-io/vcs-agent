@@ -3,7 +3,7 @@ module github.com/spacelift-io/vcs-agent
 go 1.22
 
 require (
-	github.com/bugsnag/bugsnag-go v2.4.0+incompatible
+	github.com/bugsnag/bugsnag-go/v2 v2.5.0
 	github.com/franela/goblin v0.0.0-20211003143422-0a4f594942bf
 	github.com/go-kit/log v0.2.1
 	github.com/kr/text v0.2.0
@@ -18,6 +18,7 @@ require (
 )
 
 require (
+	github.com/bugsnag/bugsnag-go v2.4.0+incompatible // indirect
 	github.com/bugsnag/panicwrap v1.3.4 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
