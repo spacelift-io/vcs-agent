@@ -3,13 +3,13 @@ module github.com/spacelift-io/vcs-agent
 go 1.22
 
 require (
-	github.com/bugsnag/bugsnag-go v2.4.0+incompatible
+	github.com/bugsnag/bugsnag-go/v2 v2.5.0
 	github.com/franela/goblin v0.0.0-20211003143422-0a4f594942bf
 	github.com/go-kit/log v0.2.1
 	github.com/kr/text v0.2.0
 	github.com/onsi/gomega v1.33.1
 	github.com/pkg/errors v0.9.1
-	github.com/spacelift-io/spcontext v0.0.3
+	github.com/spacelift-io/spcontext v0.0.4
 	github.com/stretchr/testify v1.9.0
 	github.com/urfave/cli v1.22.15
 	google.golang.org/grpc v1.65.0

@@ -13,7 +13,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/bugsnag/bugsnag-go"
+	"github.com/bugsnag/bugsnag-go/v2"
 	"github.com/go-kit/log"
 	"github.com/spacelift-io/spcontext"
 	"github.com/urfave/cli"
