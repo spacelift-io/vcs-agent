@@ -9,7 +9,7 @@ require (
 	github.com/kr/text v0.2.0
 	github.com/onsi/gomega v1.33.1
 	github.com/pkg/errors v0.9.1
-	github.com/spacelift-io/spcontext v0.0.3
+	github.com/spacelift-io/spcontext v0.0.4
 	github.com/stretchr/testify v1.9.0
 	github.com/urfave/cli v1.22.15
 	google.golang.org/grpc v1.65.0
@@ -18,7 +18,6 @@ require (
 )
 
 require (
-	github.com/bugsnag/bugsnag-go v2.4.0+incompatible // indirect
 	github.com/bugsnag/panicwrap v1.3.4 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
