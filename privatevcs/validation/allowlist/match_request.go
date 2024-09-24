@@ -8,7 +8,7 @@ import (
 )
 
 // ErrNoMatch is returned when the request didn't match any planned API usage.
-var ErrNoMatch = fmt.Errorf("no match for request")
+var ErrNoMatch = fmt.Errorf("vcs-agent: no match for request")
 
 var vendorMatchers = map[validation.Vendor]func(r *http.Request) (name string, project string, err error){
 	validation.AzureDevOps:         matchAzureDevOpsRequest,

@@ -20,6 +20,14 @@ var azureDevOpsPatterns = map[string]azureDevOpsPattern{
 		Method: http.MethodPost,
 		Path:   regexp.MustCompile("/(?P<organization>[^/]+)/(?P<project>[^/]+)/_apis/git/repositories/(?P<repositoryId>[^/]+)/pullRequests/[^/]+/threads$"),
 	},
+	"Get Pull Request Thread": {
+		Method: http.MethodGet,
+		Path:   regexp.MustCompile("/(?P<organization>[^/]+)/(?P<project>[^/]+)/_apis/git/repositories/(?P<repositoryId>[^/]+)/pullRequests/[^/]+/threads/[0-9]+$"),
+	},
+	"Update Pull Request Comment": {
+		Method: http.MethodPatch,
+		Path:   regexp.MustCompile("/(?P<organization>[^/]+)/(?P<project>[^/]+)/_apis/git/repositories/(?P<repositoryId>[^/]+)/pullRequests/[^/]+/threads/[0-9]+/comments/[0-9]+$"),
+	},
 	"List Branch Stats": {
 		Method: http.MethodGet,
 		Path:   regexp.MustCompile("/(?P<organization>[^/]+)/(?P<project>[^/]+)/_apis/git/repositories/(?P<repositoryId>[^/]+)/stats/branches$"),
