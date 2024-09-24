@@ -100,6 +100,10 @@ var gitlabPatterns = map[string]gitlabPattern{
 		Method: http.MethodPost,
 		Path:   regexp.MustCompile("^/api/v4/projects/(?P<project>[^/]+)/merge_requests/[0-9]+/notes$"),
 	},
+	"Update Merge Request Note": {
+		Method: http.MethodPut,
+		Path:   regexp.MustCompile("^/api/v4/projects/(?P<project>[^/]+)/merge_requests/[0-9]+/notes/[0-9]+$"),
+	},
 	"Git Clone - info/refs": {
 		Method: http.MethodGet,
 		Path:   regexp.MustCompile(`^/(?P<project>[^/]+\/[^/]+)\.git/info/refs$`),

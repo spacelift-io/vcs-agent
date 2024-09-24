@@ -72,6 +72,14 @@ var bitbucketDatacenterPatterns = map[string]bitbucketDatacenterPattern{
 		Method: http.MethodGet,
 		Path:   regexp.MustCompile("^/rest/api/1.0/projects/(?P<projectKey>[^/]+)/repos/(?P<repositorySlug>[^/]+)/compare/commits$"),
 	},
+	"Get a single Pull Request Comment": {
+		Method: http.MethodGet,
+		Path:   regexp.MustCompile("^/rest/api/1.0/projects/(?P<projectKey>[^/]+)/repos/(?P<repositorySlug>[^/]+)/pull-requests/[0-9]+/comments/[0-9]+$"),
+	},
+	"Update a Pull Request Comment": {
+		Method: http.MethodPut,
+		Path:   regexp.MustCompile("^/rest/api/1.0/projects/(?P<projectKey>[^/]+)/repos/(?P<repositorySlug>[^/]+)/pull-requests/[0-9]+/comments/[0-9]+$"),
+	},
 }
 
 func matchBitbucketDatacenterRequest(r *http.Request) (string, string, error) {

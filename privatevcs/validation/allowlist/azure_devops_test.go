@@ -125,6 +125,18 @@ func TestAzureDevOpsValidation(t *testing.T) {
 		// 	matches: false,
 		// 	method:  http.MethodGet,
 		// },
+		{
+			path:    "/spacelift-development/backend/_apis/git/repositories/spacelift-dev-stack/pullRequests/123/threads/1",
+			matches: true,
+			name:    "Get Pull Request Thread",
+			method:  http.MethodGet,
+		},
+		{
+			path:    "/spacelift-development/backend/_apis/git/repositories/spacelift-dev-stack/pullRequests/123/threads/1/comments/1",
+			matches: true,
+			name:    "Update Pull Request Comment",
+			method:  http.MethodPatch,
+		},
 	}
 
 	executeTestCase := func(testCase azureDevOpsTestCase) {
