@@ -28,20 +28,24 @@ jobs:
           repository_url: "ghcr.io/spacelift-io/vcs-agent"
 
       - name: Run Trivy vulnerability scanner (amd64)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.27.0
         with:
           image-ref: "ghcr.io/spacelift-io/vcs-agent:${{ fromJson(steps.goreleaser.outputs.metadata).version }}-amd64"
           format: "sarif"
           output: "trivy-results-amd64.sarif"
           severity: "CRITICAL,HIGH"
+        env:
+          TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db,public.ecr.aws/aquasecurity/trivy-db
 
       - name: Run Trivy vulnerability scanner (arm64)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.27.0
         with:
           image-ref: "ghcr.io/spacelift-io/vcs-agent:${{ fromJson(steps.goreleaser.outputs.metadata).version }}-arm64"
           format: "sarif"
           output: "trivy-results-arm64.sarif"
           severity: "CRITICAL,HIGH"
+        env:
+          TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db,public.ecr.aws/aquasecurity/trivy-db
 
       - name: Upload Trivy scan results to GitHub Security tab (amd64)
         uses: github/codeql-action/upload-sarif@v3
