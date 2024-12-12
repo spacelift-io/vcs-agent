@@ -16,7 +16,7 @@ import (
 	"github.com/bugsnag/bugsnag-go/v2"
 	"github.com/go-kit/log"
 	"github.com/spacelift-io/spcontext"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 
 	"github.com/spacelift-io/vcs-agent/agent"
 	"github.com/spacelift-io/vcs-agent/logging"
@@ -47,76 +47,76 @@ var (
 		vendorGitlab,
 	}
 
-	flagAllowedProjects = cli.StringFlag{
-		Name:   "allowed-projects",
-		EnvVar: "SPACELIFT_VCS_AGENT_ALLOWED_PROJECTS",
-		Usage:  "Regexp matching allowed projects for API calls. Projects are in the form: 'group/repository'.",
-		Value:  ".*",
+	flagAllowedProjects = &cli.StringFlag{
+		Name:    "allowed-projects",
+		EnvVars: []string{"SPACELIFT_VCS_AGENT_ALLOWED_PROJECTS"},
+		Usage:   "Regexp matching allowed projects for API calls. Projects are in the form: 'group/repository'.",
+		Value:   ".*",
 	}
 
-	flagBugsnagAPIKey = cli.StringFlag{
-		Name:   "bugsnag-api-key",
-		EnvVar: "SPACELIFT_VCS_AGENT_BUGSNAG_API_KEY",
-		Usage:  "Override the Bugsnag API key used for error reporting.",
-		Value:  "",
+	flagBugsnagAPIKey = &cli.StringFlag{
+		Name:    "bugsnag-api-key",
+		EnvVars: []string{"SPACELIFT_VCS_AGENT_BUGSNAG_API_KEY"},
+		Usage:   "Override the Bugsnag API key used for error reporting.",
+		Value:   "",
 	}
 
-	flagBugsnagDisable = cli.BoolFlag{
-		Name:   "disable-bugsnag",
-		EnvVar: "SPACELIFT_VCS_AGENT_BUGSNAG_DISABLE",
-		Usage:  "Disable Bugsnag reporting entirely.",
+	flagBugsnagDisable = &cli.BoolFlag{
+		Name:    "disable-bugsnag",
+		EnvVars: []string{"SPACELIFT_VCS_AGENT_BUGSNAG_DISABLE"},
+		Usage:   "Disable Bugsnag reporting entirely.",
 	}
 
-	flagParallelism = cli.IntFlag{
-		Name:   "parallelism",
-		EnvVar: "SPACELIFT_VCS_AGENT_PARALLELISM",
-		Usage:  "Number of streams to create. Each stream can handle one request simultaneously.",
-		Value:  4,
+	flagParallelism = &cli.IntFlag{
+		Name:    "parallelism",
+		EnvVars: []string{"SPACELIFT_VCS_AGENT_PARALLELISM"},
+		Usage:   "Number of streams to create. Each stream can handle one request simultaneously.",
+		Value:   4,
 	}
 
-	flagPoolToken = cli.StringFlag{
+	flagPoolToken = &cli.StringFlag{
 		Name:     "token",
-		EnvVar:   "SPACELIFT_VCS_AGENT_POOL_TOKEN",
+		EnvVars:  []string{"SPACELIFT_VCS_AGENT_POOL_TOKEN"},
 		Usage:    "Token received on VCS Agent Pool creation",
 		Required: true,
 	}
 
-	flagTargetBaseEndpoint = cli.StringFlag{
+	flagTargetBaseEndpoint = &cli.StringFlag{
 		Name:     "target-base-endpoint",
-		EnvVar:   "SPACELIFT_VCS_AGENT_TARGET_BASE_ENDPOINT",
+		EnvVars:  []string{"SPACELIFT_VCS_AGENT_TARGET_BASE_ENDPOINT"},
 		Usage:    "Target endpoint this agent proxies to. Should include protocol (http/https).",
 		Required: true,
 	}
 
-	flagVCSVendor = cli.StringFlag{
+	flagVCSVendor = &cli.StringFlag{
 		Name:     "vendor",
-		EnvVar:   "SPACELIFT_VCS_AGENT_VENDOR",
+		EnvVars:  []string{"SPACELIFT_VCS_AGENT_VENDOR"},
 		Usage:    fmt.Sprintf("VCS vendor proxied by this agent. Available vendors: %s", strings.Join(availableVendors, ", ")),
 		Required: true,
 	}
 
-	flagUseAllowlist = cli.BoolFlag{
-		Name:   "use-allowlist",
-		EnvVar: "SPACELIFT_VCS_AGENT_USE_ALLOWLIST",
-		Usage:  "Whether to use the allowlist to validate API calls. Incompatible with --blocklist-path.",
+	flagUseAllowlist = &cli.BoolFlag{
+		Name:    "use-allowlist",
+		EnvVars: []string{"SPACELIFT_VCS_AGENT_USE_ALLOWLIST"},
+		Usage:   "Whether to use the allowlist to validate API calls. Incompatible with --blocklist-path.",
 	}
 
-	flagBlocklistPath = cli.StringFlag{
-		Name:   "blocklist-path",
-		EnvVar: "SPACELIFT_VCS_AGENT_BLOCKLIST_PATH",
-		Usage:  "Path to the YAML blocklist file. Incompatible with --use-allowlist.",
+	flagBlocklistPath = &cli.StringFlag{
+		Name:    "blocklist-path",
+		EnvVars: []string{"SPACELIFT_VCS_AGENT_BLOCKLIST_PATH"},
+		Usage:   "Path to the YAML blocklist file. Incompatible with --use-allowlist.",
 	}
 
-	flagDebugPrintAll = cli.BoolFlag{
-		Name:   "debug-print-all",
-		EnvVar: "SPACELIFT_VCS_AGENT_DEBUG_PRINT_ALL",
-		Usage:  "Whether to print all requests and responses to stdout.",
+	flagDebugPrintAll = &cli.BoolFlag{
+		Name:    "debug-print-all",
+		EnvVars: []string{"SPACELIFT_VCS_AGENT_DEBUG_PRINT_ALL"},
+		Usage:   "Whether to print all requests and responses to stdout.",
 	}
 
-	flagHTTPDisableResponseCompression = cli.BoolFlag{
-		Name:   "http-disable-response-compression",
-		EnvVar: "SPACELIFT_VCS_AGENT_HTTP_DISABLE_RESPONSE_COMPRESSION",
-		Usage:  "Whether to disable HTTP response compression.",
+	flagHTTPDisableResponseCompression = &cli.BoolFlag{
+		Name:    "http-disable-response-compression",
+		EnvVars: []string{"SPACELIFT_VCS_AGENT_HTTP_DISABLE_RESPONSE_COMPRESSION"},
+		Usage:   "Whether to disable HTTP response compression.",
 	}
 )
 

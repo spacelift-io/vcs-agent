@@ -28,7 +28,7 @@ jobs:
           repository_url: "ghcr.io/spacelift-io/vcs-agent"
 
       - name: Run Trivy vulnerability scanner (amd64)
-        uses: aquasecurity/trivy-action@0.27.0
+        uses: aquasecurity/trivy-action@0.29.0
         with:
           image-ref: "ghcr.io/spacelift-io/vcs-agent:${{ fromJson(steps.goreleaser.outputs.metadata).version }}-amd64"
           format: "sarif"
@@ -38,7 +38,7 @@ jobs:
           TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db,public.ecr.aws/aquasecurity/trivy-db
 
       - name: Run Trivy vulnerability scanner (arm64)
-        uses: aquasecurity/trivy-action@0.27.0
+        uses: aquasecurity/trivy-action@0.29.0
         with:
           image-ref: "ghcr.io/spacelift-io/vcs-agent:${{ fromJson(steps.goreleaser.outputs.metadata).version }}-arm64"
           format: "sarif"
