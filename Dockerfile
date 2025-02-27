@@ -1,4 +1,4 @@
-FROM alpine:3.20
+FROM alpine:3.21
 
 RUN apk add --no-cache ca-certificates && apk upgrade --update-cache --available
 RUN adduser --disabled-password --no-create-home --uid=1983 spacelift
