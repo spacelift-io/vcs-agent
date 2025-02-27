@@ -35,7 +35,7 @@ release:
     | <https://downloads.spacelift.io/spacelift-vcs-agent-aarch64> | Linux (arm64) |
 
 archives:
-  - format: zip
+  - formats: [zip]
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
 
 dockers:
