@@ -4,10 +4,8 @@ go 1.24
 
 require (
 	github.com/bugsnag/bugsnag-go/v2 v2.5.1
-	github.com/franela/goblin v0.0.0-20211003143422-0a4f594942bf
 	github.com/go-kit/log v0.2.1
 	github.com/kr/text v0.2.0
-	github.com/onsi/gomega v1.37.0
 	github.com/pkg/errors v0.9.1
 	github.com/spacelift-io/spcontext v0.0.7
 	github.com/stretchr/testify v1.10.0

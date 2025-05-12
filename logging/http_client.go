@@ -41,7 +41,7 @@ func (cli *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 		req.Body = io.NopCloser(bytes.NewReader(data))
 
 		dataToLog := maybeJSONFromBody(data)
-		fmt.Fprintf(reqWriter, interpretControlSequences(string(dataToLog))+"\n")
+		_, _ = fmt.Fprintf(reqWriter, "%s\n", interpretControlSequences(string(dataToLog)))
 		buffer.Write([]byte("\n"))
 	}
 
@@ -52,7 +52,7 @@ func (cli *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 		return res, resErr
 	}
 
-	fmt.Fprintf(resWriter, "%s\n", res.Status)
+	_, _ = fmt.Fprintf(resWriter, "%s\n", res.Status)
 	printHeaders(resWriter, res.Header)
 	data, err := io.ReadAll(res.Body)
 	if err != nil {
@@ -61,8 +61,8 @@ func (cli *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 	res.Body = io.NopCloser(bytes.NewReader(data))
 
 	dataToLog := maybeJSONFromBody(data)
-	fmt.Fprintf(resWriter, interpretControlSequences(string(dataToLog))+"\n")
-	fmt.Fprintf(buffer, "\n")
+	_, _ = fmt.Fprintf(resWriter, "%s\n", interpretControlSequences(string(dataToLog)))
+	_, _ = fmt.Fprintf(buffer, "\n")
 
 	return res, nil
 }

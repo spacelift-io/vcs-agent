@@ -4,80 +4,74 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/franela/goblin"
 	"github.com/go-kit/log"
-	. "github.com/onsi/gomega"
 	"github.com/spacelift-io/spcontext"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/spacelift-io/vcs-agent/privatevcs/validation"
 )
 
 func TestRewriteGitHubTarballRequest(t *testing.T) {
-	g := goblin.Goblin(t)
-	RegisterFailHandler(func(m string, _ ...int) { g.Fail(m) })
+	t.Run("when not a GitHub request", func(t *testing.T) {
+		ctx := spcontext.New(log.NewNopLogger())
+		vendor := validation.GitLab
+		url := "https://gitlab.com/foo/bar"
 
-	g.Describe("RewriteGitHubTarballRequest", func() {
-		var ctx *spcontext.Context
-		var req *http.Request
-		var url string
-		var vendor validation.Vendor
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			t.Fatalf("failed to create request: %v", err)
+		}
 
-		g.BeforeEach(func() {
-			ctx = spcontext.New(log.NewNopLogger())
-		})
+		ctx = validation.RewriteGitHubTarballRequest(ctx, vendor, req)
 
-		g.JustBeforeEach(func() {
-			var err error
+		assert.Equal(t, "gitlab.com", req.URL.Host)
+	})
 
-			if req, err = http.NewRequest("GET", url, nil); err != nil {
-				panic(err)
+	t.Run("when a GitHub request", func(t *testing.T) {
+		t.Run("when the request is not a tarball download request", func(t *testing.T) {
+			ctx := spcontext.New(log.NewNopLogger())
+			vendor := validation.GitHubEnterprise
+			url := "https://github.corp.com/api/v3/repos/octocats/infra/deployments"
+
+			req, err := http.NewRequest("GET", url, nil)
+			if err != nil {
+				t.Fatalf("failed to create request: %v", err)
 			}
 
 			ctx = validation.RewriteGitHubTarballRequest(ctx, vendor, req)
+
+			assert.Equal(t, "github.corp.com", req.URL.Host)
 		})
 
-		g.Describe("when not a GitHub request", func() {
-			g.BeforeEach(func() {
-				vendor = validation.GitLab
-				url = "https://gitlab.com/foo/bar"
+		t.Run("when the request is a tarball download request", func(t *testing.T) {
+			t.Run("with codeload isolation disabled", func(t *testing.T) {
+				ctx := spcontext.New(log.NewNopLogger())
+				vendor := validation.GitHubEnterprise
+				url := "https://github.corp.com/_codeload/octocats/infra/legacy.tar.gz/master"
+
+				req, err := http.NewRequest("GET", url, nil)
+				if err != nil {
+					t.Fatalf("failed to create request: %v", err)
+				}
+
+				ctx = validation.RewriteGitHubTarballRequest(ctx, vendor, req)
+
+				assert.Equal(t, "github.corp.com", req.URL.Host)
 			})
 
-			g.It("should not rewrite the request", func() {
-				Expect(req.URL.Host).To(Equal("gitlab.com"))
-			})
-		})
+			t.Run("with codeload isolation enabled", func(t *testing.T) {
+				ctx := spcontext.New(log.NewNopLogger())
+				vendor := validation.GitHubEnterprise
+				url := "https://github.corp.com/octocats/infra/legacy.tar.gz/master"
 
-		g.Describe("when a GitHub request", func() {
-			g.BeforeEach(func() { vendor = validation.GitHubEnterprise })
+				req, err := http.NewRequest("GET", url, nil)
+				if err != nil {
+					t.Fatalf("failed to create request: %v", err)
+				}
 
-			g.Describe("when the request is not a tarball download request", func() {
-				g.BeforeEach(func() { url = "https://github.corp.com/api/v3/repos/octocats/infra/deployments" })
+				ctx = validation.RewriteGitHubTarballRequest(ctx, vendor, req)
 
-				g.It("should not rewrite the request", func() {
-					Expect(req.URL.Host).To(Equal("github.corp.com"))
-				})
-			})
-
-			g.Describe("when the request is a tarball download request", func() {
-				g.Describe("with codeload isolation disabled", func() {
-					g.BeforeEach(func() {
-						url = "https://github.corp.com/_codeload/octocats/infra/legacy.tar.gz/master"
-					})
-
-					g.It("should not rewrite the request", func() {
-						Expect(req.URL.Host).To(Equal("github.corp.com"))
-					})
-				})
-
-				g.Describe("with codeload isolation enabled", func() {
-					g.BeforeEach(func() {
-						url = "https://github.corp.com/octocats/infra/legacy.tar.gz/master"
-					})
-
-					g.It("should rewrite the request", func() {
-						Expect(req.URL.Host).To(Equal("codeload.github.corp.com"))
-					})
-				})
+				assert.Equal(t, "codeload.github.corp.com", req.URL.Host)
 			})
 		})
 	})
