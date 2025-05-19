@@ -16,7 +16,8 @@ import (
 	"github.com/bugsnag/bugsnag-go/v2"
 	"github.com/go-kit/log"
 	"github.com/spacelift-io/spcontext"
-	"github.com/urfave/cli/v2"
+	"context"
+	"github.com/urfave/cli/v3"
 
 	"github.com/spacelift-io/vcs-agent/agent"
 	"github.com/spacelift-io/vcs-agent/logging"
@@ -49,78 +50,78 @@ var (
 
 	flagAllowedProjects = &cli.StringFlag{
 		Name:    "allowed-projects",
-		EnvVars: []string{"SPACELIFT_VCS_AGENT_ALLOWED_PROJECTS"},
+		Sources: cli.EnvVars("SPACELIFT_VCS_AGENT_ALLOWED_PROJECTS"),
 		Usage:   "Regexp matching allowed projects for API calls. Projects are in the form: 'group/repository'.",
 		Value:   ".*",
 	}
 
 	flagBugsnagAPIKey = &cli.StringFlag{
 		Name:    "bugsnag-api-key",
-		EnvVars: []string{"SPACELIFT_VCS_AGENT_BUGSNAG_API_KEY"},
+		Sources: cli.EnvVars("SPACELIFT_VCS_AGENT_BUGSNAG_API_KEY"),
 		Usage:   "Override the Bugsnag API key used for error reporting.",
 		Value:   "",
 	}
 
 	flagBugsnagDisable = &cli.BoolFlag{
 		Name:    "disable-bugsnag",
-		EnvVars: []string{"SPACELIFT_VCS_AGENT_BUGSNAG_DISABLE"},
+		Sources: cli.EnvVars("SPACELIFT_VCS_AGENT_BUGSNAG_DISABLE"),
 		Usage:   "Disable Bugsnag reporting entirely.",
 	}
 
 	flagParallelism = &cli.IntFlag{
 		Name:    "parallelism",
-		EnvVars: []string{"SPACELIFT_VCS_AGENT_PARALLELISM"},
+		Sources: cli.EnvVars("SPACELIFT_VCS_AGENT_PARALLELISM"),
 		Usage:   "Number of streams to create. Each stream can handle one request simultaneously.",
 		Value:   4,
 	}
 
 	flagPoolToken = &cli.StringFlag{
 		Name:     "token",
-		EnvVars:  []string{"SPACELIFT_VCS_AGENT_POOL_TOKEN"},
+		Sources:  cli.EnvVars("SPACELIFT_VCS_AGENT_POOL_TOKEN"),
 		Usage:    "Token received on VCS Agent Pool creation",
 		Required: true,
 	}
 
 	flagTargetBaseEndpoint = &cli.StringFlag{
 		Name:     "target-base-endpoint",
-		EnvVars:  []string{"SPACELIFT_VCS_AGENT_TARGET_BASE_ENDPOINT"},
+		Sources:  cli.EnvVars("SPACELIFT_VCS_AGENT_TARGET_BASE_ENDPOINT"),
 		Usage:    "Target endpoint this agent proxies to. Should include protocol (http/https).",
 		Required: true,
 	}
 
 	flagVCSVendor = &cli.StringFlag{
 		Name:     "vendor",
-		EnvVars:  []string{"SPACELIFT_VCS_AGENT_VENDOR"},
+		Sources:  cli.EnvVars("SPACELIFT_VCS_AGENT_VENDOR"),
 		Usage:    fmt.Sprintf("VCS vendor proxied by this agent. Available vendors: %s", strings.Join(availableVendors, ", ")),
 		Required: true,
 	}
 
 	flagUseAllowlist = &cli.BoolFlag{
 		Name:    "use-allowlist",
-		EnvVars: []string{"SPACELIFT_VCS_AGENT_USE_ALLOWLIST"},
+		Sources: cli.EnvVars("SPACELIFT_VCS_AGENT_USE_ALLOWLIST"),
 		Usage:   "Whether to use the allowlist to validate API calls. Incompatible with --blocklist-path.",
 	}
 
 	flagBlocklistPath = &cli.StringFlag{
 		Name:    "blocklist-path",
-		EnvVars: []string{"SPACELIFT_VCS_AGENT_BLOCKLIST_PATH"},
+		Sources: cli.EnvVars("SPACELIFT_VCS_AGENT_BLOCKLIST_PATH"),
 		Usage:   "Path to the YAML blocklist file. Incompatible with --use-allowlist.",
 	}
 
 	flagDebugPrintAll = &cli.BoolFlag{
 		Name:    "debug-print-all",
-		EnvVars: []string{"SPACELIFT_VCS_AGENT_DEBUG_PRINT_ALL"},
+		Sources: cli.EnvVars("SPACELIFT_VCS_AGENT_DEBUG_PRINT_ALL"),
 		Usage:   "Whether to print all requests and responses to stdout.",
 	}
 
 	flagHTTPDisableResponseCompression = &cli.BoolFlag{
 		Name:    "http-disable-response-compression",
-		EnvVars: []string{"SPACELIFT_VCS_AGENT_HTTP_DISABLE_RESPONSE_COMPRESSION"},
+		Sources: cli.EnvVars("SPACELIFT_VCS_AGENT_HTTP_DISABLE_RESPONSE_COMPRESSION"),
 		Usage:   "Whether to disable HTTP response compression.",
 	}
 )
 
-var app = &cli.App{
+var app = &cli.Command{
 	Flags: []cli.Flag{
 		flagAllowedProjects,
 		flagBugsnagAPIKey,
@@ -132,12 +133,12 @@ var app = &cli.App{
 		flagDebugPrintAll,
 		flagHTTPDisableResponseCompression,
 	},
-	Action: func(cmdCtx *cli.Context) error {
+	Action: func(cliCtx context.Context, cmd *cli.Command) error {
 		availableVendorsMap := make(map[string]bool)
 		for _, vendor := range availableVendors {
 			availableVendorsMap[vendor] = true
 		}
-		vendor := cmdCtx.String(flagVCSVendor.Name)
+		vendor := cmd.String(flagVCSVendor.Name)
 		if !availableVendorsMap[vendor] {
 			stdlog.Fatalf("invalid vendor specified: '%s', available vendors: [%s]", vendor, strings.Join(availableVendors, ", "))
 		}
@@ -146,11 +147,11 @@ var app = &cli.App{
 		ctx := spcontext.New(log.NewJSONLogger(os.Stdout), opts...)
 
 		apiKey := BugsnagAPIKey
-		if apiKeyOverride := cmdCtx.String(flagBugsnagAPIKey.Name); len(apiKeyOverride) > 0 {
+		if apiKeyOverride := cmd.String(flagBugsnagAPIKey.Name); len(apiKeyOverride) > 0 {
 			apiKey = apiKeyOverride
 		}
 
-		if !cmdCtx.Bool(flagBugsnagDisable.Name) {
+		if !cmd.Bool(flagBugsnagDisable.Name) {
 			ctx.Notifier = bugsnag.New(bugsnag.Configuration{
 				APIKey: apiKey,
 				Logger: &spcontext.BugsnagLogger{
@@ -163,7 +164,7 @@ var app = &cli.App{
 		}
 
 		var poolConfig privatevcs.AgentPoolConfig
-		configBytes, err := base64.StdEncoding.DecodeString(cmdCtx.String(flagPoolToken.Name))
+		configBytes, err := base64.StdEncoding.DecodeString(cmd.String(flagPoolToken.Name))
 		if err != nil {
 			stdlog.Fatal("invalid pool token: ", err.Error())
 		}
@@ -171,7 +172,7 @@ var app = &cli.App{
 			stdlog.Fatal("invalid pool token: ", err.Error())
 		}
 
-		if cmdCtx.IsSet(flagAllowedProjects.Name) && vendor == vendorGitHubEnterprise {
+		if cmd.IsSet(flagAllowedProjects.Name) && vendor == vendorGitHubEnterprise {
 			stdlog.Fatal("--allowed-projects is not currently supported for the GitHub Enterprise integration")
 		}
 
@@ -179,25 +180,25 @@ var app = &cli.App{
 
 		var validationStrategy validation.Strategy = new(blocklist.List)
 
-		useAllowlist := cmdCtx.Bool(flagUseAllowlist.Name)
+		useAllowlist := cmd.Bool(flagUseAllowlist.Name)
 		if useAllowlist {
-			if validationStrategy, err = allowlist.New(cmdCtx.String(flagAllowedProjects.Name)); err != nil {
+			if validationStrategy, err = allowlist.New(cmd.String(flagAllowedProjects.Name)); err != nil {
 				stdlog.Fatal("could not create request allowlist: ", err.Error())
 			}
 		}
 
-		if cmdCtx.IsSet(flagBlocklistPath.Name) {
+		if cmd.IsSet(flagBlocklistPath.Name) {
 			if useAllowlist {
 				stdlog.Fatal("--use-allowlist and --blocklist-path are mutually exclusive")
 			}
 
-			if validationStrategy, err = blocklist.Load(cmdCtx.String(flagBlocklistPath.Name)); err != nil {
+			if validationStrategy, err = blocklist.Load(cmd.String(flagBlocklistPath.Name)); err != nil {
 				stdlog.Fatal("could not create request blocklist: ", err.Error())
 			}
 		}
 
 		var httpClient agent.RequestDoer = http.DefaultClient
-		if cmdCtx.Bool(flagDebugPrintAll.Name) {
+		if cmd.Bool(flagDebugPrintAll.Name) {
 			httpClient = &logging.HTTPClient{
 				Wrapped: http.DefaultClient,
 				Out:     &logging.ConcurrentSafeWriter{Out: os.Stdout},
@@ -206,15 +207,15 @@ var app = &cli.App{
 
 		a := agent.New(
 			&poolConfig,
-			cmdCtx.String(flagTargetBaseEndpoint.Name),
+			cmd.String(flagTargetBaseEndpoint.Name),
 			vendor,
 			validationStrategy,
 			agentMetadata,
 			httpClient,
 		)
-		a.HTTPDisableResponseCompression = cmdCtx.Bool(flagHTTPDisableResponseCompression.Name)
+		a.HTTPDisableResponseCompression = cmd.Bool(flagHTTPDisableResponseCompression.Name)
 
-		parallelismSemaphore := make(chan struct{}, cmdCtx.Int(flagParallelism.Name))
+		parallelismSemaphore := make(chan struct{}, cmd.Int(flagParallelism.Name))
 
 		signals := make(chan os.Signal, 1)
 		signal.Notify(signals, syscall.SIGTERM, syscall.SIGHUP)
@@ -267,7 +268,7 @@ var app = &cli.App{
 }
 
 func main() {
-	if err := app.Run(os.Args); err != nil {
+	if err := app.Run(context.Background(), os.Args); err != nil {
 		stdlog.Fatal(err)
 	}
 }

@@ -4,120 +4,120 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/franela/goblin"
-	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/spacelift-io/vcs-agent/privatevcs/validation/blocklist"
 )
 
-func TestRule(t *testing.T) {
-	g := goblin.Goblin(t)
-	RegisterFailHandler(func(m string, _ ...int) { g.Fail(m) })
+func TestRuleValidate(t *testing.T) {
+	t.Run("with no name (default)", func(t *testing.T) {
+		sut := new(blocklist.Rule)
 
-	g.Describe("Rule", func() {
-		var sut *blocklist.Rule
+		err := sut.Validate()
 
-		g.BeforeEach(func() {
-			sut = new(blocklist.Rule)
+		assert.EqualError(t, err, "rule name is required")
+	})
+
+	t.Run("with a name", func(t *testing.T) {
+		t.Run("with invalid method regexp", func(t *testing.T) {
+			sut := new(blocklist.Rule)
+			sut.Name = "foo"
+			sut.Method = "["
+
+			err := sut.Validate()
+
+			assert.EqualError(t, err, "could not compile rule \"foo\": invalid method matcher: error parsing regexp: missing closing ]: `[`")
 		})
 
-		g.Describe("Validate", func() {
-			var err error
-
-			g.JustBeforeEach(func() { err = sut.Validate() })
-
-			g.Describe("with no name (default)", func() {
-				g.It("should return an error", func() {
-					Expect(err).To(MatchError("rule name is required"))
-				})
-			})
-
-			g.Describe("with a name", func() {
-				g.BeforeEach(func() { sut.Name = "foo" })
-
-				g.Describe("with invalid method regexp", func() {
-					g.BeforeEach(func() { sut.Method = "[" })
-
-					g.It("should return an error", func() {
-						Expect(err).To(MatchError("could not compile rule \"foo\": invalid method matcher: error parsing regexp: missing closing ]: `[`"))
-					})
-				})
-
-				g.Describe("with valid method regexp", func() {
-					g.BeforeEach(func() { sut.Method = "GET" })
-
-					g.Describe("with invalid path regexp", func() {
-						g.BeforeEach(func() { sut.Path = "[" })
-
-						g.It("should return an error", func() {
-							Expect(err).To(MatchError("could not compile rule \"foo\": invalid path matcher: error parsing regexp: missing closing ]: `[`"))
-						})
-					})
-
-					g.Describe("with valid path regexp", func() {
-						g.BeforeEach(func() { sut.Path = ".*" })
-
-						g.It("should not return an error", func() {
-							Expect(err).ToNot(HaveOccurred())
-						})
-					})
-				})
-			})
-		})
-
-		g.Describe("Matches", func() {
-			var match bool
-			var req *http.Request
-
-			g.BeforeEach(func() {
+		t.Run("with valid method regexp", func(t *testing.T) {
+			t.Run("with invalid path regexp", func(t *testing.T) {
+				sut := new(blocklist.Rule)
 				sut.Name = "foo"
+				sut.Method = "GET"
+				sut.Path = "["
 
-				var err error
-				req, err = http.NewRequest("GET", "https://example.com/foo", nil)
+				err := sut.Validate()
 
-				if err != nil {
-					panic(err)
-				}
+				assert.EqualError(t, err, "could not compile rule \"foo\": invalid path matcher: error parsing regexp: missing closing ]: `[`")
 			})
 
-			g.JustBeforeEach(func() {
-				if err := sut.Validate(); err != nil {
-					panic(err)
-				}
-				match = sut.Matches(req)
+			t.Run("with valid path regexp", func(t *testing.T) {
+				sut := new(blocklist.Rule)
+				sut.Name = "foo"
+				sut.Method = "GET"
+				sut.Path = ".*"
+
+				err := sut.Validate()
+
+				assert.NoError(t, err)
 			})
+		})
+	})
+}
 
-			g.Describe("with a matching method", func() {
-				g.BeforeEach(func() { sut.Method = "GET" })
+func TestRuleMatches(t *testing.T) {
+	// Create a common test request
+	req, err := http.NewRequest("GET", "https://example.com/foo", nil)
+	require.NoError(t, err, "failed to create request")
 
-				g.Describe("with a matching path", func() {
-					g.BeforeEach(func() { sut.Path = ".*" })
+	t.Run("with a matching method", func(t *testing.T) {
+		t.Run("with a matching path", func(t *testing.T) {
+			sut := new(blocklist.Rule)
+			sut.Name = "foo"
+			sut.Method = "GET"
+			sut.Path = ".*"
 
-					g.It("should return true", func() { Expect(match).To(BeTrue()) })
-				})
+			err := sut.Validate()
+			require.NoError(t, err, "failed to validate rule")
 
-				g.Describe("with a non-matching path", func() {
-					g.BeforeEach(func() { sut.Path = "/bar" })
+			match := sut.Matches(req)
 
-					g.It("should return false", func() { Expect(match).To(BeFalse()) })
-				})
-			})
+			assert.True(t, match)
+		})
 
-			g.Describe("with a non-matching method", func() {
-				g.BeforeEach(func() { sut.Method = "POST" })
+		t.Run("with a non-matching path", func(t *testing.T) {
+			sut := new(blocklist.Rule)
+			sut.Name = "foo"
+			sut.Method = "GET"
+			sut.Path = "/bar"
 
-				g.Describe("with a matching path", func() {
-					g.BeforeEach(func() { sut.Path = ".*" })
+			err := sut.Validate()
+			require.NoError(t, err, "failed to validate rule")
 
-					g.It("should return false", func() { Expect(match).To(BeFalse()) })
-				})
+			match := sut.Matches(req)
 
-				g.Describe("with a non-matching path", func() {
-					g.BeforeEach(func() { sut.Path = "/bar" })
+			assert.False(t, match)
+		})
+	})
 
-					g.It("should return false", func() { Expect(match).To(BeFalse()) })
-				})
-			})
+	t.Run("with a non-matching method", func(t *testing.T) {
+		t.Run("with a matching path", func(t *testing.T) {
+			sut := new(blocklist.Rule)
+			sut.Name = "foo"
+			sut.Method = "POST"
+			sut.Path = ".*"
+
+			err := sut.Validate()
+			require.NoError(t, err, "failed to validate rule")
+
+			match := sut.Matches(req)
+
+			assert.False(t, match)
+		})
+
+		t.Run("with a non-matching path", func(t *testing.T) {
+			sut := new(blocklist.Rule)
+			sut.Name = "foo"
+			sut.Method = "POST"
+			sut.Path = "/bar"
+
+			err := sut.Validate()
+			require.NoError(t, err, "failed to validate rule")
+
+			match := sut.Matches(req)
+
+			assert.False(t, match)
 		})
 	})
 }
