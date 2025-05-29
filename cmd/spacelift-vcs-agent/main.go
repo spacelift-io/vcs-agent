@@ -1,6 +1,9 @@
 package main
 
 import (
+	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -16,7 +19,6 @@ import (
 	"github.com/bugsnag/bugsnag-go/v2"
 	"github.com/go-kit/log"
 	"github.com/spacelift-io/spcontext"
-	"context"
 	"github.com/urfave/cli/v3"
 
 	"github.com/spacelift-io/vcs-agent/agent"
@@ -119,6 +121,12 @@ var (
 		Sources: cli.EnvVars("SPACELIFT_VCS_AGENT_HTTP_DISABLE_RESPONSE_COMPRESSION"),
 		Usage:   "Whether to disable HTTP response compression.",
 	}
+
+	flagCACert = &cli.StringFlag{
+		Name:    "ca-cert",
+		Sources: cli.EnvVars("SPACELIFT_VCS_AGENT_CA_CERT"),
+		Usage:   "Base64 encoded CA certificate bundle for private PKI endpoints.",
+	}
 )
 
 var app = &cli.Command{
@@ -132,6 +140,7 @@ var app = &cli.Command{
 		flagVCSVendor,
 		flagDebugPrintAll,
 		flagHTTPDisableResponseCompression,
+		flagCACert,
 	},
 	Action: func(cliCtx context.Context, cmd *cli.Command) error {
 		availableVendorsMap := make(map[string]bool)
@@ -198,10 +207,41 @@ var app = &cli.Command{
 		}
 
 		var httpClient agent.RequestDoer = http.DefaultClient
+
+		if cmd.IsSet(flagCACert.Name) {
+			caCertB64 := cmd.String(flagCACert.Name)
+			caCertPEM, err := base64.StdEncoding.DecodeString(caCertB64)
+			if err != nil {
+				stdlog.Fatal("invalid base64 CA certificate: ", err.Error())
+			}
+
+			caCertPool := x509.NewCertPool()
+			if !caCertPool.AppendCertsFromPEM(caCertPEM) {
+				stdlog.Fatal("failed to parse CA certificate")
+			}
+
+			tlsConfig := &tls.Config{
+				RootCAs: caCertPool,
+			}
+
+			transport := &http.Transport{
+				TLSClientConfig: tlsConfig,
+			}
+
+			httpClient = &http.Client{
+				Transport: transport,
+			}
+			ctx.Infof("using custom ca certificate")
+		}
+
 		if cmd.Bool(flagDebugPrintAll.Name) {
-			httpClient = &logging.HTTPClient{
-				Wrapped: http.DefaultClient,
-				Out:     &logging.ConcurrentSafeWriter{Out: os.Stdout},
+			if customClient, ok := httpClient.(*http.Client); ok {
+				httpClient = &logging.HTTPClient{
+					Wrapped: customClient,
+					Out:     &logging.ConcurrentSafeWriter{Out: os.Stdout},
+				}
+			} else {
+				stdlog.Fatal("bad http client")
 			}
 		}
 
