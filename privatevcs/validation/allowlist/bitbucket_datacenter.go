@@ -12,6 +12,10 @@ type bitbucketDatacenterPattern struct {
 }
 
 var bitbucketDatacenterPatterns = map[string]bitbucketDatacenterPattern{
+	"Get User": {
+		Method: http.MethodGet,
+		Path:   regexp.MustCompile(`^/rest/api/1.0/users/[^/]+$`),
+	},
 	"List Repositories": {
 		Method: http.MethodGet,
 		Path:   regexp.MustCompile(`^/rest/api/1.0/repos$`),
