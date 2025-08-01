@@ -61,7 +61,12 @@ func (a *Agent) Run(ctx *spcontext.Context) (outErr error) {
 		opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{MinVersion: tls.VersionTLS12})))
 	}
 
-	client, err := grpc.NewClient(a.poolConfig.Host, opts...)
+	var host string
+	if host = a.poolConfig.Host; host == "" {
+		return errors.New("pool config host is empty, is the Spacelift backend misconfigured?")
+	}
+
+	client, err := grpc.NewClient(host, opts...)
 	if err != nil {
 		return errors.Wrap(err, "couldn't dial gateway")
 	}
