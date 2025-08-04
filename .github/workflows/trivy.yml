@@ -31,7 +31,7 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: "ghcr.io/spacelift-io/vcs-agent:${{ fromJson(steps.goreleaser.outputs.metadata).version }}-amd64"
-          version: v0.59.1
+          version: v0.65.0
           format: "sarif"
           output: "trivy-results-amd64.sarif"
           severity: "CRITICAL,HIGH"
@@ -40,7 +40,7 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: "ghcr.io/spacelift-io/vcs-agent:${{ fromJson(steps.goreleaser.outputs.metadata).version }}-arm64"
-          version: v0.59.1
+          version: v0.65.0
           format: "sarif"
           output: "trivy-results-arm64.sarif"
           severity: "CRITICAL,HIGH"
