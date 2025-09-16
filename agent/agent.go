@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -26,36 +25,56 @@ type RequestDoer interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
+// AgentConfig contains configuration parameters for creating a new Agent
+type AgentConfig struct {
+	PoolConfig                     *privatevcs.AgentPoolConfig
+	TargetBaseEndpoint             string
+	Vendor                         string
+	Validator                      validation.Strategy
+	Metadata                       map[string]string
+	HTTPClient                     RequestDoer
+	HTTPDisableResponseCompression bool
+	DialInsecure                   bool
+}
+
 // Agent is an agent connected to a VCS Gateway. Can handle only one concurrent request.
 type Agent struct {
-	poolConfig         *privatevcs.AgentPoolConfig
-	targetBaseEndpoint string
-	vendor             validation.Vendor
-	metadata           map[string]string
-	validator          validation.Strategy
-	httpClient         RequestDoer
-
-	HTTPDisableResponseCompression bool
+	poolConfig                     *privatevcs.AgentPoolConfig
+	targetBaseEndpoint             string
+	vendor                         validation.Vendor
+	metadata                       map[string]string
+	validator                      validation.Strategy
+	httpClient                     RequestDoer
+	httpDisableResponseCompression bool
+	dialInsecure                   bool
 }
 
 // New creates a new Agent.
-func New(poolConfig *privatevcs.AgentPoolConfig, targetBaseEndpoint, vendor string, validator validation.Strategy, metadata map[string]string, httpClient RequestDoer) *Agent {
-	return &Agent{
-		metadata:           metadata,
-		poolConfig:         poolConfig,
-		targetBaseEndpoint: strings.TrimSuffix(targetBaseEndpoint, "/"),
-		validator:          validator,
-		vendor:             validation.Vendor(vendor),
-		httpClient:         httpClient,
+func New(config *AgentConfig) (*Agent, error) {
+	if config.PoolConfig == nil {
+		return nil, errors.New("PoolConfig must be supplied")
 	}
+
+	if config.TargetBaseEndpoint == "" {
+		return nil, errors.New("TargetBaseEndpoint must be supplied")
+	}
+
+	return &Agent{
+		metadata:                       config.Metadata,
+		poolConfig:                     config.PoolConfig,
+		targetBaseEndpoint:             strings.TrimSuffix(config.TargetBaseEndpoint, "/"),
+		validator:                      config.Validator,
+		vendor:                         validation.Vendor(config.Vendor),
+		httpClient:                     config.HTTPClient,
+		httpDisableResponseCompression: config.HTTPDisableResponseCompression,
+		dialInsecure:                   config.DialInsecure,
+	}, nil
 }
 
 // Run runs the agent and handles any incoming requests.
 func (a *Agent) Run(ctx *spcontext.Context) (outErr error) {
-	insecure := os.Getenv("SPACELIFT_VCS_AGENT_DIAL_INSECURE") != ""
-
 	var opts []grpc.DialOption
-	if insecure {
+	if a.dialInsecure {
 		opts = append(opts, grpc.WithTransportCredentials(insecurePkg.NewCredentials()))
 	} else {
 		opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{MinVersion: tls.VersionTLS12})))
@@ -146,7 +165,7 @@ func (a *Agent) handleRequest(ctx *spcontext.Context, id string, msg *privatevcs
 		req.Header.Set(key, value)
 	}
 
-	if a.HTTPDisableResponseCompression {
+	if a.httpDisableResponseCompression {
 		req.Header.Set("Accept-Encoding", "identity")
 	}
 

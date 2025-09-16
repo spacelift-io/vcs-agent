@@ -127,6 +127,12 @@ var (
 		Sources: cli.EnvVars("SPACELIFT_VCS_AGENT_CA_CERT"),
 		Usage:   "Base64 encoded CA certificate bundle for private PKI endpoints.",
 	}
+
+	flagDialInsecure = &cli.BoolFlag{
+		Name:    "dial-insecure",
+		Sources: cli.EnvVars("SPACELIFT_VCS_AGENT_DIAL_INSECURE"),
+		Usage:   "Whether to allow connecting to the VCS Gateway without using TLS.",
+	}
 )
 
 var app = &cli.Command{
@@ -141,6 +147,7 @@ var app = &cli.Command{
 		flagDebugPrintAll,
 		flagHTTPDisableResponseCompression,
 		flagCACert,
+		flagDialInsecure,
 	},
 	Action: func(cliCtx context.Context, cmd *cli.Command) error {
 		availableVendorsMap := make(map[string]bool)
@@ -245,15 +252,19 @@ var app = &cli.Command{
 			}
 		}
 
-		a := agent.New(
-			&poolConfig,
-			cmd.String(flagTargetBaseEndpoint.Name),
-			vendor,
-			validationStrategy,
-			agentMetadata,
-			httpClient,
-		)
-		a.HTTPDisableResponseCompression = cmd.Bool(flagHTTPDisableResponseCompression.Name)
+		a, err := agent.New(&agent.AgentConfig{
+			PoolConfig:                     &poolConfig,
+			TargetBaseEndpoint:             cmd.String(flagTargetBaseEndpoint.Name),
+			Vendor:                         vendor,
+			Validator:                      validationStrategy,
+			Metadata:                       agentMetadata,
+			HTTPClient:                     httpClient,
+			HTTPDisableResponseCompression: cmd.Bool(flagHTTPDisableResponseCompression.Name),
+			DialInsecure:                   cmd.Bool(flagDialInsecure.Name),
+		})
+		if err != nil {
+			stdlog.Fatalf("could not create agent: %v", err)
+		}
 
 		parallelismSemaphore := make(chan struct{}, cmd.Int(flagParallelism.Name))
 
