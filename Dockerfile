@@ -1,4 +1,4 @@
-FROM alpine:3.22
+FROM ghcr.io/nginx/alpine-fips:0.4.0-alpine3.22
 
 RUN apk upgrade --update-cache --available && apk add ca-certificates && rm -rf /var/cache/apk/*
 RUN adduser --disabled-password --no-create-home --uid=1983 spacelift

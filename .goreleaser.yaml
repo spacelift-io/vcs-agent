@@ -3,7 +3,7 @@ version: 2
 
 builds:
   - main: ./cmd/spacelift-vcs-agent
-    env: [CGO_ENABLED=0]
+    env: [CGO_ENABLED=0, GOFIPS140=latest]
     goos: [windows, linux, darwin]
     goarch: [amd64, arm64]
     flags: [-trimpath]
