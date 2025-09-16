@@ -22,7 +22,7 @@ func TestRewriteGitHubTarballRequest(t *testing.T) {
 			t.Fatalf("failed to create request: %v", err)
 		}
 
-		ctx = validation.RewriteGitHubTarballRequest(ctx, vendor, req)
+		validation.RewriteGitHubTarballRequest(ctx, vendor, req)
 
 		assert.Equal(t, "gitlab.com", req.URL.Host)
 	})
@@ -38,7 +38,7 @@ func TestRewriteGitHubTarballRequest(t *testing.T) {
 				t.Fatalf("failed to create request: %v", err)
 			}
 
-			ctx = validation.RewriteGitHubTarballRequest(ctx, vendor, req)
+			validation.RewriteGitHubTarballRequest(ctx, vendor, req)
 
 			assert.Equal(t, "github.corp.com", req.URL.Host)
 		})
@@ -54,7 +54,7 @@ func TestRewriteGitHubTarballRequest(t *testing.T) {
 					t.Fatalf("failed to create request: %v", err)
 				}
 
-				ctx = validation.RewriteGitHubTarballRequest(ctx, vendor, req)
+				validation.RewriteGitHubTarballRequest(ctx, vendor, req)
 
 				assert.Equal(t, "github.corp.com", req.URL.Host)
 			})
@@ -69,7 +69,7 @@ func TestRewriteGitHubTarballRequest(t *testing.T) {
 					t.Fatalf("failed to create request: %v", err)
 				}
 
-				ctx = validation.RewriteGitHubTarballRequest(ctx, vendor, req)
+				validation.RewriteGitHubTarballRequest(ctx, vendor, req)
 
 				assert.Equal(t, "codeload.github.corp.com", req.URL.Host)
 			})

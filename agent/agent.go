@@ -108,7 +108,7 @@ func (a *Agent) Run(ctx *spcontext.Context) (outErr error) {
 		case *privatevcs.Request_HttpRequest:
 			responseMsg = a.handleRequest(ctx, msg.Id, req.HttpRequest)
 		case *privatevcs.Request_PingRequest:
-			responseMsg = a.handlePing(ctx, msg.Id, req.PingRequest)
+			responseMsg = a.handlePing(msg.Id)
 		}
 
 		if err := stream.Send(responseMsg); err != nil {
@@ -212,7 +212,7 @@ func (a *Agent) handleRequest(ctx *spcontext.Context, id string, msg *privatevcs
 	}
 }
 
-func (a *Agent) handlePing(ctx *spcontext.Context, id string, msg *privatevcs.PingRequest) *privatevcs.Response {
+func (a *Agent) handlePing(id string) *privatevcs.Response {
 	return &privatevcs.Response{
 		Id: id,
 		Content: &privatevcs.Response_PingResponse{
