@@ -252,9 +252,14 @@ var app = &cli.Command{
 			}
 		}
 
+		base := cmd.String(flagTargetBaseEndpoint.Name)
+		if strings.HasPrefix(base, "http://") && strings.Contains(base, "gitlab") {
+			ctx.Warnf("GitLab integration might not work correctly using HTTP. Please use HTTPS.")
+		}
+
 		a, err := agent.New(&agent.AgentConfig{
 			PoolConfig:                     &poolConfig,
-			TargetBaseEndpoint:             cmd.String(flagTargetBaseEndpoint.Name),
+			TargetBaseEndpoint:             base,
 			Vendor:                         vendor,
 			Validator:                      validationStrategy,
 			Metadata:                       agentMetadata,
