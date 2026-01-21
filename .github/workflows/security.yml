@@ -12,6 +12,7 @@ concurrency:
 jobs:
   codeql:
     name: 👮‍♀️ CodeQL
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
 
     steps:
@@ -35,6 +36,7 @@ jobs:
 
   gosec:
     name: 👮‍♀️ GoSec
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
 
     steps:
