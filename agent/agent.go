@@ -196,6 +196,7 @@ func (a *Agent) handleRequest(ctx *spcontext.Context, id string, msg *privatevcs
 			},
 		}
 	}
+	defer res.Body.Close()
 
 	ctx.With(
 		"elapsed", time.Since(start),
@@ -212,7 +213,7 @@ func (a *Agent) handleRequest(ctx *spcontext.Context, id string, msg *privatevcs
 		}
 	}
 
-	headers := make(map[string]string)
+	headers := make(map[string]string, len(res.Header))
 	for key, values := range res.Header {
 		if len(values) > 0 {
 			headers[key] = values[0]
