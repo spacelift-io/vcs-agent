@@ -196,7 +196,7 @@ func (a *Agent) handleRequest(ctx *spcontext.Context, id string, msg *privatevcs
 			},
 		}
 	}
-	defer res.Body.Close()
+	defer res.Body.Close() //nolint:errcheck // error not actionable after response is read
 
 	ctx.With(
 		"elapsed", time.Since(start),
