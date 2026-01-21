@@ -274,7 +274,7 @@ var app = &cli.Command{
 		parallelismSemaphore := make(chan struct{}, cmd.Int(flagParallelism.Name))
 
 		signals := make(chan os.Signal, 1)
-		signal.Notify(signals, syscall.SIGTERM, syscall.SIGHUP)
+		signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 		ctx, cancel := spcontext.WithCancel(ctx)
 
 		go func() {
