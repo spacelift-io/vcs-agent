@@ -5,38 +5,17 @@ on:
   schedule:
     - cron: "19 7 * * 0"
 
+permissions:
+  contents: read
+  security-events: write
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
-  codeql:
-    name: 👮‍♀️ CodeQL
-    if: github.actor != 'dependabot[bot]'
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Setup Go
-        uses: actions/setup-go@v6
-        with: { go-version-file: go.mod }
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4
-        with:
-          languages: "go"
-
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v4
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v4
-
   gosec:
     name: 👮‍♀️ GoSec
-    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
 
     steps:
