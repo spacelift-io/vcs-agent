@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	stdlog "log"
 	"net/http"
@@ -181,6 +182,7 @@ var app = &cli.Command{
 
 		var poolConfig privatevcs.AgentPoolConfig
 		configBytes, err := base64.StdEncoding.DecodeString(cmd.String(flagPoolToken.Name))
+
 		if err != nil {
 			stdlog.Fatal("invalid pool token: ", err.Error())
 		}
@@ -191,6 +193,7 @@ var app = &cli.Command{
 		if cmd.IsSet(flagAllowedProjects.Name) && vendor == vendorGitHubEnterprise {
 			stdlog.Fatal("--allowed-projects is not currently supported for the GitHub Enterprise integration")
 		}
+
 
 		agentMetadata := loadMetadata()
 
@@ -305,7 +308,7 @@ var app = &cli.Command{
 
 					if err := a.Run(ctx); err != nil {
 						if !strings.Contains(err.Error(), "context canceled") {
-							_ = ctx.RawError(err, "error running agent")
+							handleErrorReport(ctx, err)
 						}
 					}
 				}()
@@ -322,6 +325,7 @@ var app = &cli.Command{
 	Usage:     "The VCS Agent is used to proxy requests to your VCS provider if Spacelift cannot access it directly.",
 	Version:   VERSION,
 }
+
 
 func main() {
 	if err := app.Run(context.Background(), os.Args); err != nil {
@@ -348,4 +352,14 @@ func loadMetadata() map[string]string {
 	}
 
 	return metadata
+}
+
+func handleErrorReport(ctx *spcontext.Context, err error) {
+	var missConfigErr *agent.MisconfigurationError
+
+	if errors.As(err, &missConfigErr) {
+		stdlog.Fatal(err)
+	}
+
+	_ = ctx.RawError(err, "error running agent")
 }
