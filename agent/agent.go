@@ -82,7 +82,7 @@ func (a *Agent) Run(ctx *spcontext.Context) (outErr error) {
 
 	var host string
 	if host = a.poolConfig.Host; host == "" {
-		return errors.New("pool config host is empty, is the Spacelift backend misconfigured?")
+		return NewMisconfigurationError(errors.New("The token seems to be invalid. Please download a valid token from the VCS Agent Pool configuration page."))
 	}
 
 	client, err := grpc.NewClient(host, opts...)
