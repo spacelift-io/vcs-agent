@@ -186,6 +186,7 @@ var app = &cli.Command{
 		if err != nil {
 			stdlog.Fatal("invalid pool token: ", err.Error())
 		}
+
 		if err := json.Unmarshal(configBytes, &poolConfig); err != nil {
 			stdlog.Fatal("invalid pool token: ", err.Error())
 		}
@@ -296,6 +297,7 @@ var app = &cli.Command{
 				break runLoop
 			}
 			wg.Add(1)
+
 			ctx.Infof("Starting new stream.")
 			go func() {
 				func() {
@@ -308,7 +310,7 @@ var app = &cli.Command{
 
 					if err := a.Run(ctx); err != nil {
 						if !strings.Contains(err.Error(), "context canceled") {
-							handleErrorReport(ctx, err)
+							handleErrorReport(ctx, err, cancel)
 						}
 					}
 				}()
@@ -354,11 +356,14 @@ func loadMetadata() map[string]string {
 	return metadata
 }
 
-func handleErrorReport(ctx *spcontext.Context, err error) {
+
+func handleErrorReport(ctx *spcontext.Context, err error, cancel spcontext.CancelFunc) {
 	var missConfigErr *agent.MisconfigurationError
 
 	if errors.As(err, &missConfigErr) {
-		stdlog.Fatal(err)
+		ctx.Warnf("%s", err.Error())
+		cancel()
+		return
 	}
 
 	_ = ctx.RawError(err, "error running agent")
