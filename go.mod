@@ -3,7 +3,7 @@ module github.com/spacelift-io/vcs-agent
 go 1.25
 
 require (
-	github.com/bugsnag/bugsnag-go/v2 v2.6.2
+	github.com/bugsnag/bugsnag-go/v2 v2.6.3
 	github.com/go-kit/log v0.2.1
 	github.com/kr/text v0.2.0
 	github.com/pkg/errors v0.9.1
