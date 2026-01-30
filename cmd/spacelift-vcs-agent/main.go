@@ -160,8 +160,12 @@ var app = &cli.Command{
 			stdlog.Fatalf("invalid vendor specified: '%s', available vendors: [%s]", vendor, strings.Join(availableVendors, ", "))
 		}
 
-		var opts []spcontext.ContextOption
-		ctx := spcontext.New(log.NewJSONLogger(os.Stdout), opts...)
+		signalCtx, cancel := signal.NotifyContext(cliCtx, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
+		defer cancel()
+
+		ctx := spcontext.New(log.NewJSONLogger(os.Stdout), func(ctx *spcontext.Context) {
+			ctx.Context = signalCtx
+		})
 
 		apiKey := BugsnagAPIKey
 		if apiKeyOverride := cmd.String(flagBugsnagAPIKey.Name); len(apiKeyOverride) > 0 {
@@ -194,7 +198,6 @@ var app = &cli.Command{
 		if cmd.IsSet(flagAllowedProjects.Name) && vendor == vendorGitHubEnterprise {
 			stdlog.Fatal("--allowed-projects is not currently supported for the GitHub Enterprise integration")
 		}
-
 
 		agentMetadata := loadMetadata()
 
@@ -277,16 +280,6 @@ var app = &cli.Command{
 
 		parallelismSemaphore := make(chan struct{}, cmd.Int(flagParallelism.Name))
 
-		signals := make(chan os.Signal, 1)
-		signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
-		ctx, cancel := spcontext.WithCancel(ctx)
-
-		go func() {
-			s := <-signals
-			ctx.Infof("signal received: %s", s.String())
-			cancel()
-		}()
-
 		wg := sync.WaitGroup{}
 
 	runLoop:
@@ -294,6 +287,7 @@ var app = &cli.Command{
 			select {
 			case parallelismSemaphore <- struct{}{}:
 			case <-ctx.Done():
+				ctx.Infof("shutdown signal received")
 				break runLoop
 			}
 			wg.Add(1)
@@ -304,9 +298,14 @@ var app = &cli.Command{
 					defer wg.Done()
 					defer func() {
 						// Recover error which has already been sent by bugsnag below.
-						_ = recover()
+						if err := recover(); err != nil {
+							ctx.Errorf("%v", recover())
+						}
 					}()
-					defer ctx.Notifier.AutoNotify(ctx)
+
+					if ctx.Notifier != nil {
+						defer ctx.Notifier.AutoNotify(ctx)
+					}
 
 					if err := a.Run(ctx); err != nil {
 						if !strings.Contains(err.Error(), "context canceled") {
@@ -314,6 +313,7 @@ var app = &cli.Command{
 						}
 					}
 				}()
+
 				time.Sleep(time.Second * 5)
 				<-parallelismSemaphore
 			}()
@@ -327,7 +327,6 @@ var app = &cli.Command{
 	Usage:     "The VCS Agent is used to proxy requests to your VCS provider if Spacelift cannot access it directly.",
 	Version:   VERSION,
 }
-
 
 func main() {
 	if err := app.Run(context.Background(), os.Args); err != nil {
@@ -355,7 +354,6 @@ func loadMetadata() map[string]string {
 
 	return metadata
 }
-
 
 func handleErrorReport(ctx *spcontext.Context, err error, cancel spcontext.CancelFunc) {
 	var missConfigErr *agent.MisconfigurationError
