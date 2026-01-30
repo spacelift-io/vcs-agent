@@ -1,0 +1,37 @@
+name: 🤖 Dependabot
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "go.mod"
+      - "go.sum"
+      - "Dockerfile"
+      - ".github/workflows/**"
+
+permissions:
+  contents: write
+  pull-requests: write
+  repository-projects: read
+
+jobs:
+  auto-merge:
+    name: 🤖 Approve and auto-merge
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Generate token
+        id: generate
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.AUTOMATION_APP_ID }}
+          private-key: ${{ secrets.AUTOMATION_APP_KEY }}
+
+      - name: Approve and auto-merge
+        env:
+          GITHUB_TOKEN: ${{ steps.generate.outputs.token }}
+        run: |
+          gh pr review "${{ github.event.pull_request.html_url }}" --approve
+          gh pr merge --auto --squash "${{ github.event.pull_request.html_url }}"

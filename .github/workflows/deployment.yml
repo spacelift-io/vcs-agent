@@ -10,6 +10,7 @@ jobs:
   publish:
     name: 🚀 Build and publish VCS Agent
     runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
     permissions:
       id-token: write
       contents: write
