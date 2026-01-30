@@ -114,6 +114,8 @@ func (a *Agent) Run(ctx *spcontext.Context) (outErr error) {
 		return errors.Wrap(err, "couldn't connect to gateway")
 	}
 
+	ctx.Infof("Successfully connected to Spacelift!")
+
 	for {
 		msg, err := stream.Recv()
 		if err == io.EOF {
