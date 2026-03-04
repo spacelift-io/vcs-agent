@@ -32,19 +32,17 @@ jobs:
           repository_url: "ghcr.io/spacelift-io/vcs-agent"
 
       - name: Run Trivy vulnerability scanner (amd64)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.34.2
         with:
           image-ref: "ghcr.io/spacelift-io/vcs-agent:${{ fromJson(steps.goreleaser.outputs.metadata).version }}-amd64"
-          version: v0.65.0
           format: "sarif"
           output: "trivy-results-amd64.sarif"
           severity: "CRITICAL,HIGH"
 
       - name: Run Trivy vulnerability scanner (arm64)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.34.2
         with:
           image-ref: "ghcr.io/spacelift-io/vcs-agent:${{ fromJson(steps.goreleaser.outputs.metadata).version }}-arm64"
-          version: v0.65.0
           format: "sarif"
           output: "trivy-results-arm64.sarif"
           severity: "CRITICAL,HIGH"
