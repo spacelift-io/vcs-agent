@@ -7,7 +7,7 @@ require (
 	github.com/go-kit/log v0.2.1
 	github.com/kr/text v0.2.0
 	github.com/pkg/errors v0.9.1
-	github.com/spacelift-io/spcontext v0.1.0
+	github.com/spacelift-io/spcontext v0.1.1
 	github.com/stretchr/testify v1.11.1
 	github.com/urfave/cli/v3 v3.7.0
 	google.golang.org/grpc v1.79.3
