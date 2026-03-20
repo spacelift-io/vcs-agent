@@ -1,6 +1,6 @@
 module github.com/spacelift-io/vcs-agent
 
-go 1.25
+go 1.26
 
 require (
 	github.com/bugsnag/bugsnag-go/v2 v2.6.3
