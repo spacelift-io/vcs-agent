@@ -150,28 +150,8 @@ runs:
 
     - name: Purge Cloudflare cache for spacelift-vcs-agent
       if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') }}
-      shell: bash
-      env:
-        ZONE_ID: ${{ inputs.cloudflare_zone_id }}
-        PREFIX: ${{ inputs.cloudflare_purge_prefix }}
-        CLOUDFLARE_API_TOKEN: ${{ inputs.cloudflare_purge_token }}
-      run: |
-        set -euo pipefail
-        BODY=$(jq -nc --arg p "$PREFIX" '{prefixes:[$p]}')
-
-        if ! response=$(curl --fail-with-body --silent --show-error \
-            --retry 3 --retry-connrefused --retry-max-time 60 --max-time 15 \
-            -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/purge_cache" \
-            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-            -H "Content-Type: application/json" \
-            --data "$BODY"); then
-          printf 'ERROR: Cloudflare purge request failed: %s\n' "$response" >&2
-          exit 1
-        fi
-
-        if ! jq -e '.success == true' <<<"$response" >/dev/null 2>&1; then
-          printf 'ERROR: Cloudflare purge was not successful: %s\n' "$response" >&2
-          exit 1
-        fi
-
-        echo "Cloudflare cache purged"
+      uses: spacelift-io/shared-actions/actions/purge-cloudflare-cache@main
+      with:
+        zone_id: ${{ inputs.cloudflare_zone_id }}
+        api_token: ${{ inputs.cloudflare_purge_token }}
+        purge_prefixes: ${{ inputs.cloudflare_purge_prefix }}
