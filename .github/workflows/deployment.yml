@@ -33,3 +33,10 @@ jobs:
           gpg_base64_key: ${{ secrets.GPG_KEY_BASE64 }}
           gpg_passphrase: ${{ secrets.GPG_PASSPHRASE }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          r2_bucket: ${{ startsWith(github.ref, 'refs/tags/v') && vars.R2_BUCKET || vars.PREPROD_R2_BUCKET }}
+          r2_endpoint: ${{ startsWith(github.ref, 'refs/tags/v') && vars.R2_ENDPOINT_URL || vars.PREPROD_R2_ENDPOINT_URL }}
+          r2_access_key_id: ${{ startsWith(github.ref, 'refs/tags/v') && secrets.R2_ACCESS_KEY_ID || secrets.PREPROD_R2_ACCESS_KEY_ID }}
+          r2_secret_access_key: ${{ startsWith(github.ref, 'refs/tags/v') && secrets.R2_SECRET_ACCESS_KEY || secrets.PREPROD_R2_SECRET_ACCESS_KEY }}
+          cloudflare_zone_id: ${{ startsWith(github.ref, 'refs/tags/v') && vars.EU_DOWNLOADS_CLOUDFLARE_ZONE_ID || vars.PREPROD_DOWNLOADS_CLOUDFLARE_ZONE_ID }}
+          cloudflare_purge_token: ${{ startsWith(github.ref, 'refs/tags/v') && secrets.EU_CLOUDFLARE_CACHE_PURGE_TOKEN || secrets.PREPROD_CLOUDFLARE_CACHE_PURGE_TOKEN }}
+          cloudflare_purge_prefix: ${{ startsWith(github.ref, 'refs/tags/v') && vars.EU_DOWNLOADS_CLOUDFLARE_PURGE_PREFIX || vars.PREPROD_DOWNLOADS_CLOUDFLARE_PURGE_PREFIX }}

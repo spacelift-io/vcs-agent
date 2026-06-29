@@ -29,6 +29,27 @@ inputs:
   github_token:
     description: The GitHub token. Used to authenticate with GitHub.
     required: true
+  r2_bucket:
+    description: The Cloudflare R2 bucket name. Used to upload the binaries.
+    required: true
+  r2_endpoint:
+    description: The Cloudflare R2 S3-compatible endpoint URL.
+    required: true
+  r2_access_key_id:
+    description: The Cloudflare R2 access key ID.
+    required: true
+  r2_secret_access_key:
+    description: The Cloudflare R2 secret access key.
+    required: true
+  cloudflare_zone_id:
+    description: The Cloudflare zone ID for downloads.<domain>. Used for cache purge.
+    required: true
+  cloudflare_purge_token:
+    description: The Cloudflare API token with Zone:Cache Purge:Purge permission.
+    required: true
+  cloudflare_purge_prefix:
+    description: URL prefix (without scheme) to purge from the Cloudflare edge cache, e.g. downloads.spacelift.io/spacelift-vcs-agent.
+    required: true
 
 runs:
   using: composite
@@ -105,7 +126,20 @@ runs:
       if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') }}
       shell: bash
       run: aws s3 sync build/ s3://${{ inputs.aws_bucket }}
-    
+
+    - name: Upload the VCS Agent binaries to Cloudflare R2
+      if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') }}
+      shell: bash
+      env:
+        AWS_ACCESS_KEY_ID: ${{ inputs.r2_access_key_id }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.r2_secret_access_key }}
+        AWS_SESSION_TOKEN: ""
+        AWS_REGION: auto
+        AWS_EC2_METADATA_DISABLED: "true"
+        BUCKET: ${{ inputs.r2_bucket }}
+        ENDPOINT: ${{ inputs.r2_endpoint }}
+      run: aws s3 sync build/ "s3://$BUCKET" --endpoint-url "$ENDPOINT"
+
     - name: Invalidate downloads.spacelift.[dev|io] cache
       if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') }}
       shell: bash
@@ -113,3 +147,11 @@ runs:
         aws cloudfront create-invalidation
         --distribution-id ${{ inputs.cloudfront_distribution }}
         --paths "/*"
+
+    - name: Purge Cloudflare cache for spacelift-vcs-agent
+      if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') }}
+      uses: spacelift-io/public-shared-actions/actions/purge-cloudflare-cache@main
+      with:
+        zone_id: ${{ inputs.cloudflare_zone_id }}
+        api_token: ${{ inputs.cloudflare_purge_token }}
+        purge_prefixes: ${{ inputs.cloudflare_purge_prefix }}
