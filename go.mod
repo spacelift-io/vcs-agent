@@ -7,10 +7,10 @@ require (
 	github.com/go-kit/log v0.2.1
 	github.com/kr/text v0.2.0
 	github.com/pkg/errors v0.9.1
-	github.com/spacelift-io/spcontext v0.2.1
+	github.com/spacelift-io/spcontext v0.2.3
 	github.com/stretchr/testify v1.12.1
-	github.com/urfave/cli/v3 v3.12.0
-	google.golang.org/grpc v1.83.2
+	github.com/urfave/cli/v3 v3.13.0
+	google.golang.org/grpc v1.84.0
 	google.golang.org/protobuf v1.36.12
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -25,5 +25,5 @@ require (
 	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.41.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260706201446-f0a921348800 // indirect
 )
